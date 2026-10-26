@@ -1,0 +1,126 @@
+/* 版面：上方題號格 → 點題目進入；題目在上可捲動，講解字幕與播放鍵固定在下方，像學生在看老師批改過的考卷 */
+:root{
+  --paper:#f5f7fa; --card:#ffffff; --ink:#1c2230; --muted:#677084; --line:#dde2ea;
+  --pen:#2448b5;      /* 老師的藍筆：正解 */
+  --red:#c42f28;      /* 老師的紅筆：刪去、補字 */
+  --marker:rgba(255,226,60,.62); /* 螢光筆 */
+  --chip:#eaeef6;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#11141b; --card:#1a1f29; --ink:#e7eaf0; --muted:#9aa2b4; --line:#2b3242;
+  --pen:#8fa9ff; --red:#ff7d73; --marker:rgba(255,214,40,.34); --chip:#232a37; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11141b; --card:#1a1f29; --ink:#e7eaf0; --muted:#9aa2b4; --line:#2b3242;
+  --pen:#8fa9ff; --red:#ff7d73; --marker:rgba(255,214,40,.34); --chip:#232a37; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+img{max-width:100%}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--serif);font-size:1.6rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:.95rem}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.num:focus-visible,input:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+.box{margin:18px 0 14px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:.95rem}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;min-height:44px}
+.btn.main{background:var(--pen);border-color:var(--pen);color:var(--card);font-weight:700;min-width:7.5em}
+.btn:disabled{opacity:.4;cursor:default}
+.err{color:var(--red);min-height:1.6em;margin:6px 0 0}
+
+/* 班級代碼 */
+.gate{max-width:420px;margin:12vh auto 0;text-align:center}
+.gate input{font:inherit;font-size:1.6rem;letter-spacing:.3em;text-align:center;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin:16px 0 10px}
+
+/* 考試列表 */
+.exams{display:grid;gap:10px;margin-top:18px}
+.exam{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;width:100%;
+  border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px 16px}
+.exam b{font-family:var(--serif);font-size:1.15rem;display:block}
+.exam span{color:var(--muted);font-size:.85rem}
+.exam .go{color:var(--pen);font-weight:700;white-space:nowrap}
+
+/* 題號 */
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted);margin:6px 0 12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.sec{font-size:.8rem;letter-spacing:.12em;color:var(--muted);margin:18px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.num{position:relative;aspect-ratio:1;max-width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;
+  font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums;display:grid;place-items:center}
+.num small{position:absolute;bottom:4px;left:0;right:0;font-size:.62rem;font-weight:500;color:var(--muted)}
+.num[disabled]{opacity:.38;cursor:default}
+.num.ready{border-color:var(--pen);color:var(--pen)}
+.num.st-ok{background:var(--pen);color:var(--card);border-color:var(--pen)}
+.num.st-no{background:var(--red);color:var(--card);border-color:var(--red)}
+.num.st-ok small,.num.st-no small{color:var(--card)}
+
+/* 題目頁 */
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.back{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;min-height:40px}
+.tag{background:var(--chip);border-radius:999px;padding:3px 10px;font-size:.85rem;color:var(--muted)}
+.video{margin-top:14px;position:relative;aspect-ratio:16/9;max-width:100%;border-radius:12px;overflow:hidden;background:#000}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vnote{font-size:.85rem;color:var(--muted);margin:6px 0 0}
+.paper{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 18px;
+  font-family:var(--serif);font-size:1.18rem;line-height:2.05}
+.qno{font-weight:700;margin-right:.3em}
+.gtitle{font-family:var(--sans);font-size:.95rem;color:var(--muted)}
+.passage{border:1px solid var(--ink);padding:10px 14px;margin:8px 0 12px}
+.passage p{margin:0;text-indent:2em}
+.figure{margin:8px 0 12px;text-align:center}
+.figure img{border-radius:6px;border:1px solid var(--line)}
+.gloss{font-family:var(--sans);font-size:.88rem;line-height:1.7;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0;color:var(--muted)}
+ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
+.opt{position:relative;padding-left:2.4em;border-radius:6px;transition:opacity .3s}
+.opt .L{position:absolute;left:.2em;top:0;width:1.9em;text-align:center}
+.opt.out{opacity:.45;text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
+.opt.ok{color:var(--pen)}
+.opt.ok .L{color:var(--pen);font-weight:700}
+.opt.ok .L::after{content:"";position:absolute;inset:.35em .05em;border:2.5px solid var(--pen);border-radius:50%}
+.m{border-radius:3px;transition:background .25s,box-shadow .25s}
+.m.hl{background:var(--marker);box-shadow:0 0 0 2px var(--marker)}
+.m.rv{color:var(--red);font-weight:700}
+.m.rv::after{content:attr(data-was);font-size:.55em;color:var(--muted);font-weight:400;margin-left:2px;vertical-align:super}
+.blank{letter-spacing:.1em}
+
+/* 底部播放器 */
+.spacer{height:240px}
+.player{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--card);border-top:1px solid var(--line);
+  box-shadow:0 -6px 20px rgba(0,0,0,.08);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.pin{max-width:860px;margin:0 auto;display:grid;gap:10px}
+.cap{min-height:4.8em;font-size:1.08rem;line-height:1.6}
+.cap .who{font-size:.8rem;color:var(--muted);display:block}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:22px;height:8px;border-radius:4px;border:0;background:var(--line);padding:0}
+.dot.on{background:var(--pen)}
+.dot.past{background:color-mix(in srgb,var(--pen) 40%,var(--line))}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.speed{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:.85rem;color:var(--muted)}
+.speed button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 8px;min-height:36px}
+.speed button[aria-pressed="true"]{border-color:var(--pen);color:var(--pen);font-weight:700}
+.end{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ans{font-family:var(--serif);font-size:1.15rem;margin-right:6px}
+.ans b{color:var(--pen)}
+.btn.ok{border-color:var(--pen);color:var(--pen)}
+.btn.no{border-color:var(--red);color:var(--red)}
+.note{font-size:.8rem;color:var(--muted)}
+
+/* 老師檢查頁 */
+.rq{margin-top:22px}
+.rq .paper{margin-top:8px}
+.rhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rhead b{font-family:var(--serif);font-size:1.2rem}
+.steps{margin:10px 0 0;padding-left:1.6em;font-size:1rem;line-height:1.7}
+.steps li{margin:4px 0}
+.say{display:block;font-size:.85rem;color:var(--muted)}
+.miss{color:var(--muted);font-size:.9rem}
+.warn{color:var(--red);font-size:.9rem}
+
+@media (max-width:520px){.paper{font-size:1.05rem;padding:16px 14px}.speed{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}

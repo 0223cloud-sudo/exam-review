@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>講解稿檢查</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="gate" class="wrap" hidden>
+  <form class="gate" id="gform">
+    <h1>講解稿檢查（老師用）</h1>
+    <p class="sub">請輸入班級代碼</p>
+    <input id="gcode" inputmode="numeric" autocomplete="off" aria-label="班級代碼">
+    <button class="btn main" type="submit">進入</button>
+    <p class="err" id="gerr"></p>
+  </form>
+</div>
+
+<div id="list" class="wrap" hidden>
+  <h1>講解稿檢查（老師用）</h1>
+  <p class="sub">選一份考試，一次看完全部題目和講解稿</p>
+  <div class="exams" id="exams"></div>
+</div>
+
+<div id="rv" class="wrap" hidden>
+  <h1 id="etitle"></h1>
+  <div class="box">每題下面的編號就是講解的每一步。要修改的話，跟 Claude 說「第幾題第幾步改成……」即可。灰色的「念法」是為了讓電腦語音讀對破音字，不會顯示給學生看。</div>
+  <div id="all"></div>
+</div>
+
+<script src="app.js"></script>
+<script>reviewApp();</script>
+</body>
+</html>
