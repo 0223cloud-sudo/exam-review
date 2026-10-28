@@ -102,6 +102,7 @@ ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
 .dot.past{background:color-mix(in srgb,var(--pen) 40%,var(--line))}
 .ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .speed{margin-left:auto;display:flex;gap:4px;align-items:center;font-size:.85rem;color:var(--muted)}
+.speed + .speed{margin-left:8px}
 .speed button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 8px;min-height:36px}
 .speed button[aria-pressed="true"]{border-color:var(--pen);color:var(--pen);font-weight:700}
 .end{display:flex;flex-wrap:wrap;gap:8px;align-items:center}

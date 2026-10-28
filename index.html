@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -60,6 +60,9 @@
           <button class="btn" id="prev">◀ 上一步</button>
           <button class="btn main" id="play">▶ 播放講解</button>
           <button class="btn" id="next">下一步 ▶</button>
+          <div class="speed" id="voiceSel" hidden>聲音
+            <button data-v="teacher">老師</button><button data-v="tts">電腦</button>
+          </div>
           <div class="speed">語速
             <button data-r="0.8">慢</button><button data-r="1" aria-pressed="true">正常</button><button data-r="1.2">快</button>
           </div>
@@ -76,7 +79,7 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 <script>studentApp();</script>
 </body>
 </html>

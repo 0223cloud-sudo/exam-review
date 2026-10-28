@@ -83,7 +83,7 @@ const isReady = q => hasSteps(q) || !!(q && q.video);
 
 /* ---------- 學生頁 ---------- */
 function studentApp(){
-  let exam = null, cur = null, idx = -1, playing = false, token = 0, rate = 1;
+  let exam = null, cur = null, idx = -1, playing = false, token = 0, rate = 1, examCode = "";
   const stKey = () => "exam-review-st-" + exam.id;
 
   gate((index, code) => {
@@ -104,7 +104,7 @@ function studentApp(){
 
   async function openExam(id, code, q){
     $("list").hidden = true;
-    try{ exam = await decrypt(await getJSON(`exams/${id}.json`), code); exam.id = id; }
+    try{ exam = await decrypt(await getJSON(`exams/${id}.json`), code); exam.id = id; examCode = code; resetAudio(); }
     catch(e){ $("list").hidden = false; $("exams").insertAdjacentHTML("afterbegin", `<div class="box err">這份考試打不開，請重新整理再試一次。</div>`); return; }
     document.title = exam.title + "　檢討";
     $("etitle").textContent = exam.title + "　檢討";
@@ -202,6 +202,7 @@ function studentApp(){
     $("next").disabled = idx >= steps.length - 1;
     $("play").textContent = playing ? "❚❚ 暫停" : (idx < 0 ? "▶ 播放講解" : "▶ 繼續");
     $("end").hidden = !(steps.length ? idx === steps.length - 1 : true);
+    $("voiceSel").hidden = !(exam.audio && steps.some(s => s.au));  // 這一題有老師錄音才顯示聲音切換
   }
 
   /* 語音：用平板內建的中文語音 */
@@ -213,14 +214,61 @@ function studentApp(){
   };
   if(synth){ pickVoice(); synth.onvoiceschanged = pickVoice; }
 
+  /* 老師聲音：exams/<id>/<檔名>.bin，前 12 bytes 是 iv，其餘是加密的 m4a */
+  const audioEl = new Audio();
+  audioEl.preload = "auto";
+  let audioKey = null, clips = new Map();
+  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+  function resetAudio(){ audioKey = null; clips.forEach(p => p.then(u => URL.revokeObjectURL(u)).catch(() => {})); clips = new Map(); }
+  // iPad 只允許「按下按鈕當下」開始播放，所以點擊時先用無聲檔解鎖播放器
+  function unlockAudio(){ if(!audioEl.src){ audioEl.src = SILENT; audioEl.play().catch(() => {}); } }
+  async function getAudioKey(){
+    if(!audioKey){
+      const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(examCode), "PBKDF2", false, ["deriveKey"]);
+      audioKey = crypto.subtle.deriveKey({name:"PBKDF2", salt:b64(exam.audio.salt), iterations:exam.audio.iter, hash:"SHA-256"},
+        km, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+    }
+    return audioKey;
+  }
+  function clipURL(name){
+    if(!clips.has(name)){
+      const p = (async () => {
+        const r = await fetch(`exams/${exam.id}/${name}`);
+        if(!r.ok) throw new Error(name);
+        const buf = new Uint8Array(await r.arrayBuffer());
+        const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:buf.slice(0, 12)}, await getAudioKey(), buf.slice(12));
+        return URL.createObjectURL(new Blob([pt], {type:"audio/mp4"}));
+      })();
+      p.catch(() => clips.delete(name));
+      clips.set(name, p);
+    }
+    return clips.get(name);
+  }
+  const useTeacher = () => !!exam.audio && ls.get("exam-review-voice", "teacher") === "teacher";
+
   function speakStep(){
-    const my = ++token, s = exam.questions[cur].steps[idx], text = s.say || s.cap;
+    const my = ++token, steps = exam.questions[cur].steps, s = steps[idx], text = s.say || s.cap;
     const after = () => {
       if(my !== token) return;
-      if(playing && idx < exam.questions[cur].steps.length - 1)
+      if(playing && idx < steps.length - 1)
         setTimeout(() => { if(my === token && playing){ idx++; apply(); speakStep(); } }, 450);
       else { playing = false; apply(); }
     };
+    if(s.au && useTeacher()){
+      const next = steps[idx + 1];
+      clipURL(s.au).then(url => {
+        if(my !== token) return;
+        audioEl.src = url;
+        audioEl.playbackRate = rate;
+        audioEl.onended = after;
+        audioEl.play().catch(() => { if(my === token) speakTTS(text, after); });
+        if(next && next.au) clipURL(next.au).catch(() => {});  // 先準備下一步
+      }).catch(() => { if(my === token) speakTTS(text, after); });
+      return;
+    }
+    speakTTS(text, after);
+  }
+  function speakTTS(text, after){
     if(synth){
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -230,10 +278,10 @@ function studentApp(){
       synth.speak(u);
     } else setTimeout(after, Math.max(2500, text.length * 230 / rate)); // 沒有語音時照字幕長度自動換步
   }
-  function stop(){ playing = false; token++; if(synth) synth.cancel(); }
+  function stop(){ playing = false; token++; if(synth) synth.cancel(); audioEl.pause(); }
   function go(i, speak){
     stop(); idx = i; apply();
-    if(speak){ playing = true; apply(); speakStep(); }
+    if(speak){ unlockAudio(); playing = true; apply(); speakStep(); }
   }
 
   $("back").onclick = closeQ;
@@ -244,11 +292,18 @@ function studentApp(){
   const mark2 = (v, msg) => { const st = ls.get(stKey(), {}); st[cur] = v; ls.set(stKey(), st); $("endnote").textContent = msg; };
   $("iok").onclick = () => mark2("ok", "已記下「懂了」。按「回題號」看下一題。");
   $("ino").onclick = () => mark2("no", "已記下「還是不懂」，記得找老師問，也可以再聽一次。");
-  document.querySelectorAll(".speed button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".speed button[data-r]").forEach(b => b.onclick = () => {
     rate = +b.dataset.r;
-    document.querySelectorAll(".speed button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    document.querySelectorAll(".speed button[data-r]").forEach(x => x.setAttribute("aria-pressed", x === b));
     if(playing) go(idx, true);
   });
+  const drawVoice = () => document.querySelectorAll("#voiceSel button").forEach(x =>
+    x.setAttribute("aria-pressed", x.dataset.v === ls.get("exam-review-voice", "teacher")));
+  document.querySelectorAll("#voiceSel button").forEach(b => b.onclick = () => {
+    ls.set("exam-review-voice", b.dataset.v); drawVoice();
+    if(playing) go(idx, true);
+  });
+  drawVoice();
 }
 
 /* ---------- 老師檢查頁：一次列出所有題目和講解稿 ---------- */
@@ -279,7 +334,7 @@ function reviewApp(){
       if(isReady(q)) h += `<a class="tag" href="index.html?exam=${encodeURIComponent(want)}&q=${n}" target="_blank">在學生畫面試聽 →</a>`;
       h += `</div><div class="paper">${paperHTML(exam, n)}</div>`;
       if(hasSteps(q)){
-        h += `<ol class="steps">` + q.steps.map(s => `<li>${s.cap}${s.say && s.say !== s.cap ? `<span class="say">念法：${s.say}</span>` : ""}</li>`).join("") + `</ol>`;
+        h += `<ol class="steps">` + q.steps.map(s => `<li>${s.au ? "🎙 " : ""}${s.cap}${s.say && s.say !== s.cap ? `<span class="say">念法：${s.say}</span>` : ""}</li>`).join("") + `</ol>`;
       } else if(!q.video) h += `<p class="miss">這題還沒有講解。</p>`;
       sec.innerHTML = h;
       out.append(sec);
