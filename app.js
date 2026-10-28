@@ -189,7 +189,9 @@ function studentApp(){
       if(!target && L) target = paper.querySelector(`[data-o="${L}"]`);
     }
     if(target){
-      const r = target.getBoundingClientRect(), bottom = innerHeight - document.querySelector(".player").offsetHeight;
+      // 播放區在下方時，題目只看得到它上面那一塊；在右邊（寬螢幕）時整個高度都看得到
+      const pr = document.querySelector(".player").getBoundingClientRect();
+      const r = target.getBoundingClientRect(), bottom = pr.top > innerHeight / 3 ? pr.top : innerHeight;
       if(r.top < 60 || r.bottom > bottom - 10) scrollBy({top: r.top - bottom / 2 + r.height / 2, behavior: "smooth"});
     }
     $("cap").innerHTML = !steps.length
@@ -283,6 +285,11 @@ function studentApp(){
     stop(); idx = i; apply();
     if(speak){ unlockAudio(); playing = true; apply(); speakStep(); }
   }
+
+  // 播放區在下方時，題目底下留出和播放區一樣高的空白，最後幾行才不會被蓋住
+  if(window.ResizeObserver) new ResizeObserver(() => {
+    document.querySelector(".spacer").style.height = document.querySelector(".player").offsetHeight + 16 + "px";
+  }).observe(document.querySelector(".player"));
 
   $("back").onclick = closeQ;
   $("play").onclick = () => { if(playing){ stop(); apply(); } else go(idx < 0 ? 0 : idx, true); };

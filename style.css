@@ -124,4 +124,28 @@ ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
 .warn{color:var(--red);font-size:.9rem}
 
 @media (max-width:520px){.paper{font-size:1.05rem;padding:16px 14px}.speed{margin-left:0}}
+
+/* 矮螢幕（Chromebook、iPad 橫放、瀏覽器縮放）：播放區變精簡，字幕太長就在框內捲動 */
+@media (max-height:760px){
+  .player{padding-top:8px}
+  .pin{gap:6px}
+  .cap{min-height:3.2em;max-height:28vh;overflow-y:auto;font-size:1rem}
+  .btn{min-height:38px;padding:6px 12px}
+  .ans{font-size:1rem}
+}
+
+/* 寬螢幕（Chromebook、iPad 橫放、電腦）：播放區放右邊一欄，不蓋住題目 */
+@media (min-width:1000px){
+  #view{--side:min(400px, 36vw)}
+  #view .wrap{max-width:none;margin:0;padding-right:calc(var(--side) + 24px)}
+  #view .paper, #view .top, #view #vbox{max-width:860px}
+  .spacer{display:none}
+  .player{top:0;left:auto;width:var(--side);border-top:0;border-left:1px solid var(--line);
+    box-shadow:-6px 0 20px rgba(0,0,0,.06);overflow-y:auto;
+    padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) 16px}
+  .pin{max-width:none;align-content:start;gap:14px}
+  .cap{min-height:6em;max-height:none;font-size:1.1rem}
+  .speed{margin-left:0}
+  #ctlWrap .ctl{row-gap:10px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
