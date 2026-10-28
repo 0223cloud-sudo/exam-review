@@ -2,9 +2,9 @@
  "check": {
   "v": 1,
   "iter": 200000,
-  "salt": "srtE/QYuynheU5MH70ALIA==",
-  "iv": "6Q+mqjI0hwMaJRbz",
-  "data": "YQJfMeh7W7CIEY1nyCRGy88tqaI="
+  "salt": "3ko2ePenWKprS8gUNE8jOw==",
+  "iv": "wrCqxPUWWvvk5CQ4",
+  "data": "Ybty/x6VnIBU5zkKipZ0ZV1F2uo="
  },
  "exams": [
   {
@@ -14,7 +14,7 @@
    "date": "2026-10-28",
    "total": 42,
    "ready": 42,
-   "hidden": true
+   "hidden": false
   },
   {
    "id": "demo",
