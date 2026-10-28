@@ -48,7 +48,10 @@ async function gate(onOK){
 /* ---------- 題目渲染 ---------- */
 // {key:文字} → 可標螢光筆的片段；文字裡可以放 <span class="blank">□□</span> 這類標籤
 const mark = s => (s || "").replace(/\{(\w+):((?:<[^>]*>|[^}])*)\}/g, (m, k, t) => `<span class="m" data-k="${k}">${t}</span>`);
-const paras = s => (s || "").split(/\n+/).map(p => `<p>${mark(p)}</p>`).join("");
+// 照老師批改閱讀題的習慣：句號、驚嘆號後面畫斜線，冒號圈起來（只用在題目和文章，不用在選項）
+const annotate = h => h.replace(/([。！])/g, '$1<span class="sl" aria-hidden="true"></span>')
+                       .replace(/：/g, '<span class="cl">:</span>');  // 用半形冒號，圓圈才不會被全形字撐寬
+const paras = s => (s || "").split(/\n+/).map(p => `<p>${annotate(mark(p))}</p>`).join("");
 
 function paperHTML(exam, n){
   const q = exam.questions[n], g = q.group ? exam.groups[q.group] : null;
@@ -64,7 +67,7 @@ function paperHTML(exam, n){
   }
   if(q.img) h += `<div class="figure"><img src="${q.img}" alt="第 ${n} 題附圖"></div>`;
   if(q.gloss) h += `<div class="gloss">📖 ${q.gloss}</div>`;
-  h += `<div>${q.passage ? "" : `<span class="qno">${n}.</span>`}${mark(q.stem)}</div><ol class="opts">`;
+  h += `<div>${q.passage ? "" : `<span class="qno">${n}.</span>`}${annotate(mark(q.stem))}</div><ol class="opts">`;
   for(const L of ["A","B","C","D"]) if(q.opts && q.opts[L] !== undefined)
     h += `<li class="opt" data-o="${L}"><span class="L">(${L})</span>${mark(q.opts[L])}</li>`;
   return h + "</ol>";
@@ -78,6 +81,8 @@ function videoEmbed(url){
   if(m) return `https://drive.google.com/file/d/${m[1]}/preview`;
   return null;
 }
+// 講解步驟開頭的選項代號，例如「選項 A：」「選項 C、D：」「圖 B：」，念完要停頓一下
+const OPTION_LABEL = /^((?:選項|圖)\s*[A-D](?:\s*[、，]\s*[A-D])*)\s*[：:]\s*/;
 const hasSteps = q => !!(q && q.steps && q.steps.length);
 const isReady = q => hasSteps(q) || !!(q && q.video);
 
@@ -271,14 +276,20 @@ function studentApp(){
     speakTTS(text, after);
   }
   function speakTTS(text, after){
-    if(synth){
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance(text);
+    if(!synth){ setTimeout(after, Math.max(2500, text.length * 230 / rate)); return; } // 沒有語音時照字幕長度自動換步
+    synth.cancel();
+    const my = token;
+    const say = (t, done) => {
+      const u = new SpeechSynthesisUtterance(t);
       u.lang = "zh-TW"; if(voice) u.voice = voice; u.rate = rate;
-      u.onend = after;
-      u.onerror = e => { if(e.error !== "interrupted" && e.error !== "canceled") after(); };
+      u.onend = done;
+      u.onerror = e => { if(e.error !== "interrupted" && e.error !== "canceled") done(); };
       synth.speak(u);
-    } else setTimeout(after, Math.max(2500, text.length * 230 / rate)); // 沒有語音時照字幕長度自動換步
+    };
+    // 老師的習慣：先念「選項 A」，停一下，再講解析
+    const m = text.match(OPTION_LABEL);
+    if(m) say(m[1], () => setTimeout(() => { if(my === token) say(text.slice(m[0].length), after); }, 600));
+    else say(text, after);
   }
   function stop(){ playing = false; token++; if(synth) synth.cancel(); audioEl.pause(); }
   function go(i, speak){

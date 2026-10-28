@@ -87,6 +87,12 @@ ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
 .m.rv{color:var(--red);font-weight:700}
 .m.rv::after{content:attr(data-was);font-size:.55em;color:var(--muted);font-weight:400;margin-left:2px;vertical-align:super}
 .blank{letter-spacing:.1em}
+/* 老師的批改記號：句號、驚嘆號後的斜線，圈起來的冒號（藍筆） */
+.sl{display:inline-block;width:.45em;height:1.05em;margin:0 .05em 0 -.15em;vertical-align:-.12em;
+  background:linear-gradient(to top left,transparent calc(50% - 1px),var(--pen) calc(50% - 1px),var(--pen) calc(50% + 1px),transparent calc(50% + 1px))}
+.cl{display:inline-flex;align-items:center;justify-content:center;width:1.05em;height:1.05em;vertical-align:-.15em;
+  border:1.5px solid var(--pen);border-radius:50%;margin:0 .05em;font-size:.95em;line-height:1;letter-spacing:0;
+  font-feature-settings:"halt";text-indent:0}
 
 /* 底部播放器 */
 .spacer{height:240px}
