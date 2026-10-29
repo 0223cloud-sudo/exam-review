@@ -94,6 +94,18 @@ ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
   border:1.5px solid var(--pen);border-radius:50%;margin:0 .05em;font-size:.95em;line-height:1;letter-spacing:0;
   font-feature-settings:"halt";text-indent:0}
 
+/* 文字詳解 */
+.expl{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 18px}
+.expl summary{cursor:pointer;font-weight:700;padding:10px 0;min-height:44px;list-style-position:outside}
+.expl summary span{font-weight:400;font-size:.85rem;color:var(--muted);margin-left:4px}
+.expl ol{margin:0 0 12px;padding-left:1.8em;line-height:1.75}
+.expl li{margin:2px 0;padding-left:.2em}
+.expl li button{all:unset;cursor:pointer;display:block;width:100%;padding:4px 8px;margin-left:-8px;border-radius:6px}
+.expl li button:hover{background:var(--chip)}
+.expl li button:focus-visible{outline:3px solid var(--pen)}
+.expl li.on button{background:var(--marker)}
+.expl li.on::marker{color:var(--pen);font-weight:700}
+
 /* 底部播放器 */
 .spacer{height:240px}
 .player{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--card);border-top:1px solid var(--line);
@@ -144,7 +156,7 @@ ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
 @media (min-width:1000px){
   #view{--side:min(400px, 36vw)}
   #view .wrap{max-width:none;margin:0;padding-right:calc(var(--side) + 24px)}
-  #view .paper, #view .top, #view #vbox{max-width:860px}
+  #view .paper, #view .top, #view #vbox, #view .expl{max-width:860px}
   .spacer{display:none}
   .player{top:0;left:auto;width:var(--side);border-top:0;border-left:1px solid var(--line);
     box-shadow:-6px 0 20px rgba(0,0,0,.06);overflow-y:auto;

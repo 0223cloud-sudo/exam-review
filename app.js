@@ -162,6 +162,14 @@ function studentApp(){
       d.className = "dot"; d.setAttribute("aria-label", `第 ${i+1} 步`); d.onclick = () => go(i, true);
       $("dots").append(d);
     });
+    // 文字詳解：所有步驟一次列出來，點一步就從那一步開始講
+    $("expl").hidden = !hasSteps(q);
+    $("explList").innerHTML = "";
+    (q.steps || []).forEach((s, i) => {
+      const li = document.createElement("li"), b = document.createElement("button");
+      b.innerHTML = s.cap; b.onclick = () => go(i, true);
+      li.append(b); $("explList").append(li);
+    });
     $("ansv").textContent = q.answer || "";
     $("endnote").textContent = "記錄只存在這台平板上。";
     $("ctlWrap").hidden = $("again").hidden = !hasSteps(q);
@@ -205,6 +213,7 @@ function studentApp(){
         ? `<span class="who">準備好了嗎？</span>按「播放講解」開始，也可以按下面的小格子跳到任何一步。`
         : `<span class="who">第 ${idx+1} 步／共 ${steps.length} 步</span>${steps[idx].cap}`;
     [...$("dots").children].forEach((d, i) => { d.classList.toggle("on", i === idx); d.classList.toggle("past", i < idx); });
+    [...$("explList").children].forEach((li, i) => li.classList.toggle("on", i === idx));
     $("prev").disabled = idx <= 0;
     $("next").disabled = idx >= steps.length - 1;
     $("play").textContent = playing ? "❚❚ 暫停" : (idx < 0 ? "▶ 播放講解" : "▶ 繼續");
@@ -301,6 +310,10 @@ function studentApp(){
   if(window.ResizeObserver) new ResizeObserver(() => {
     document.querySelector(".spacer").style.height = document.querySelector(".player").offsetHeight + 16 + "px";
   }).observe(document.querySelector(".player"));
+
+  // 文字詳解打開或收起，記在這台平板上，下一題維持一樣
+  $("expl").open = ls.get("exam-review-expl", false);
+  $("expl").ontoggle = () => ls.set("exam-review-expl", $("expl").open);
 
   $("back").onclick = closeQ;
   $("play").onclick = () => { if(playing){ stop(); apply(); } else go(idx < 0 ? 0 : idx, true); };

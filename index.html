@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -49,6 +49,10 @@
     </div>
     <div id="vbox" hidden></div>
     <div class="paper" id="paper"></div>
+    <details class="expl" id="expl" hidden>
+      <summary>📄 文字詳解<span>（可以邊聽邊看，點任一步就從那裡講）</span></summary>
+      <ol id="explList"></ol>
+    </details>
     <div class="spacer"></div>
   </div>
   <div class="player">
@@ -79,7 +83,7 @@
   </div>
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>studentApp();</script>
 </body>
 </html>
