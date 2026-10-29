@@ -167,3 +167,18 @@ ol.opts{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px}
   #ctlWrap .ctl{row-gap:10px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* 老師管理頁 */
+.ahead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.ahead .sub a{color:var(--pen);word-break:break-all}
+.acard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px}
+.atop{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.atop b{font-family:var(--serif);font-size:1.15rem}
+.acard .note{margin:4px 0 0}
+.abtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.abtns:empty{display:none}
+.badge{font-size:.8rem;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.badge.live{background:color-mix(in srgb,var(--pen) 14%,transparent);color:var(--pen)}
+.badge.wait{background:var(--marker);color:var(--ink)}
+.badge.busy{background:var(--chip);color:var(--muted)}
+.badge.bad{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}

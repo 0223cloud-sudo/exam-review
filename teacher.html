@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>老師管理頁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css?v=7">
+</head>
+<body>
+
+<div id="gate" class="wrap" hidden>
+  <form class="gate" id="gform">
+    <h1>老師管理頁</h1>
+    <p class="sub">請輸入老師密碼（不是學生的班級代碼）</p>
+    <input id="gcode" inputmode="numeric" autocomplete="off" aria-label="老師密碼">
+    <button class="btn main" type="submit">進入</button>
+    <p class="err" id="gerr"></p>
+  </form>
+</div>
+
+<div id="admin" class="wrap" hidden>
+  <div class="ahead">
+    <div>
+      <h1>國文考卷檢討・老師管理頁</h1>
+      <p class="sub">學生網址 <a id="siteUrl" href="./" target="_blank">開啟</a>　班級代碼 <b id="ccode"></b></p>
+    </div>
+    <button class="btn main" id="upload">📤 上傳新考卷</button>
+  </div>
+  <div class="box" id="howto">按按鈕會打開 Google 表單，確認後按「提交」。Claude 每小時檢查一次，這頁的狀態最多約 1 小時後更新。急的話，也可以直接在 Claude 對話裡說。</div>
+  <p class="note" id="updated"></p>
+  <div id="cards"></div>
+</div>
+
+<script src="app.js?v=7"></script>
+<script>teacherApp();</script>
+</body>
+</html>

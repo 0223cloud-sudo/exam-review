@@ -373,3 +373,87 @@ function reviewApp(){
     $("rv").hidden = false;
   });
 }
+
+/* ---------- 老師管理頁：所有考試的狀態，按鈕打開預先填好的 Google 表單 ----------
+   exams/admin.json 用老師密碼加密（source/teacher_code.txt），內容由 build.py 產生。
+   網頁本身不能改網站：動作都是送出表單，再由每小時的雲端排程照表單處理（見 CLAUDE.md）。 */
+function teacherApp(){
+  const KEY = "exam-review-teacher";
+  const site = new URL("./", location.href).href;
+  const start = async () => {
+    let env;
+    try{ env = await getJSON("exams/admin.json"); }
+    catch(e){ $("gate").hidden = false; $("gerr").textContent = "讀不到管理資料，請確認網路後重新整理。"; return; }
+    const open = async code => { try{ return await decrypt(env, code); }catch(e){ return null; } };
+    const saved = ls.get(KEY, "");
+    const data = saved && await open(saved);
+    if(data) return draw(data);
+    $("gate").hidden = false;
+    $("gform").onsubmit = async e => {
+      e.preventDefault();
+      const code = $("gcode").value.trim();
+      if(!code) return;
+      $("gerr").textContent = "檢查中…";
+      const d = await open(code);
+      if(d){ ls.set(KEY, code); $("gate").hidden = true; draw(d); }
+      else $("gerr").textContent = "密碼不對，請再確認一次。";
+    };
+    $("gcode").focus();
+  };
+
+  function draw(data){
+    $("admin").hidden = false;
+    $("siteUrl").href = site; $("siteUrl").textContent = site;
+    $("ccode").textContent = data.classCode;
+    $("updated").textContent = data.updated ? `最近一次自動處理：${data.updated}` : "";
+    const form = data.form;
+    // 預先填好「要做什麼」和「哪一份考試」，老師只要按提交
+    const formURL = (action, exam) => {
+      const u = new URL(form.url);
+      u.searchParams.set("usp", "pp_url");
+      u.searchParams.set(form.entries.action, form.actions[action]);
+      if(exam) u.searchParams.set(form.entries.exam, exam);
+      return u.href;
+    };
+    const go = (action, exam, ask) => {
+      if(!form){ alert("Google 表單還沒設定好，請先在 Claude 對話裡處理。"); return; }
+      if(ask && !confirm(ask)) return;
+      window.open(formURL(action, exam), "_blank");
+    };
+    $("upload").onclick = () => go("upload");
+
+    const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const btn = (label, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + (cls || ""); b.textContent = label; b.onclick = fn; return b; };
+    const card = (title, badge, badgeCls, note) => {
+      const c = document.createElement("section");
+      c.className = "acard";
+      c.innerHTML = `<div class="atop"><b>${esc(title)}</b><span class="badge ${badgeCls}">${badge}</span></div>${note ? `<p class="note">${esc(note)}</p>` : ""}<div class="abtns"></div>`;
+      $("cards").append(c);
+      return c.querySelector(".abtns");
+    };
+    $("cards").innerHTML = "";
+    // 還在處理（或處理失敗）的上傳
+    for(const j of data.jobs || []){
+      const fail = j.state === "失敗";
+      card(j.title || "新考卷", fail ? "需要處理" : "Claude 製作中", fail ? "bad" : "busy", j.note || (fail ? "" : "已收到檔案，做好會出現在下面。"));
+    }
+    for(const e of data.exams){
+      const box = card(e.title, e.hidden ? "待您檢查（學生看不到）" : "學生看得到", e.hidden ? "wait" : "live",
+        `${e.date || ""}　有講解 ${e.ready}／${e.total} 題`);
+      box.append(btn("👀 檢查講解", "", () => window.open(`review.html?exam=${encodeURIComponent(e.id)}`, "_blank")));
+      box.append(btn("▶ 學生畫面", "", () => window.open(`index.html?exam=${encodeURIComponent(e.id)}`, "_blank")));
+      if(e.hidden) box.append(btn("✅ 開放給學生", "ok", () => go("show", e.id)));
+      else {
+        box.append(btn("🔗 複製學生網址", "", async ev => {
+          const t = `${site}?exam=${encodeURIComponent(e.id)}　班級代碼 ${data.classCode}`;
+          try{ await navigator.clipboard.writeText(t); ev.target.textContent = "已複製"; }catch(err){ prompt("請複製這段文字：", t); }
+        }));
+        box.append(btn("🙈 先藏起來", "", () => go("hide", e.id)));
+      }
+      box.append(btn("🗑 刪除", "no", () => go("delete", e.id, `確定要刪除「${e.title}」嗎？學生網站上會完全消失。`)));
+    }
+    if(!data.exams.length && !(data.jobs || []).length)
+      $("cards").innerHTML = `<p class="note">還沒有考試。按右上角「上傳新考卷」開始。</p>`;
+  }
+  start();
+}
