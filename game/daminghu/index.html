@@ -1090,7 +1090,11 @@ function checkInner(){ if(talking) return; const w=INNER[innerStep]; if(!w) retu
 
 
 // ---------- 湖上小遊戲：撈起課文裡的方位字 ----------
-const WORDSETS={lixia:{w:'朝北不遠',a:[-30,-30],b:[-6,0]}, tie:{w:'向西盪去',a:[2,2],b:[44,24]}, he:{w:'盪到亭後',a:[40,16],b:[0,22]}, end:{w:'鵲華橋畔',a:[-8,18],b:[-28,-30]}};
+const WORDSETS={
+ lixia:{w:'朝北不遠',a:[-30,-30],b:[-6,0], q:{q:'撈到「朝北不遠」。從鵲華橋到歷下亭，要往哪個方向划？',o:['北','南','東','西'],hl:'朝北不遠，便到歷下亭前',why:'「朝北不遠，便到歷下亭前」，歷下亭在鵲華橋的北邊。'}},
+ tie:{w:'向西盪去',a:[2,2],b:[44,24], q:{q:'撈到「向西盪去」。這裡的「盪」是什麼意思？',o:['划船，讓船在水上前進','盪鞦韆','搖晃不穩','掃除乾淨'],hl:'復行下船，向西盪去',why:'「盪起雙槳」「向西盪去」，盪都是划船前進。'}},
+ he:{w:'盪到歷下亭的後面',a:[40,16],b:[0,22], q:{q:'撈到「盪到歷下亭的後面」。到了那裡，是什麼把船夾住？',o:['兩邊的荷葉荷花','兩岸的柳樹','一層蘆葦','別的遊船'],hl:'盪到歷下亭的後面',why:'「兩邊荷葉荷花將船夾住。」'}},
+ end:{w:'到了鵲華橋畔',a:[-8,18],b:[-28,-30], q:{q:'撈到「到了鵲華橋畔」。「畔」是什麼意思？',o:['旁邊、邊上','橋的下面','對面','裡面'],hl:'船已到了鵲華橋畔了',why:'畔是旁邊，鵲華橋畔就是鵲華橋邊。'}}};
 const wordbar=document.getElementById('wordbar'); let tokens=[], wordKey=null, wordGot=0;
 function charTex(ch){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
   x.fillStyle='#4c7a5c'; x.beginPath(); x.arc(64,64,58,0.25,Math.PI*2-0.05); x.lineTo(64,64); x.fill(); x.strokeStyle='#2f4f3a'; x.lineWidth=4; x.stroke();
@@ -1102,11 +1106,11 @@ function setupWords(key){ tokens.forEach(t=>scene.remove(t.s)); tokens=[]; wordK
     if(!isWater(x,z)){ x=S.a[0]+(S.b[0]-S.a[0])*u; z=S.a[1]+(S.b[1]-S.a[1])*u; }
     const s=new T.Sprite(new T.SpriteMaterial({map:charTex(ch),fog:false})); s.scale.set(4.2,4.2,1); s.position.set(x,1.8,z); s.layers.set(1); scene.add(s); tokens.push({ch,s,x,z,i,got:false}); });
   renderWordbar(); wordbar.hidden=false; }
-function renderWordbar(){ const S=WORDSETS[wordKey]; if(!S) return; wordbar.innerHTML='🪷 划船撈字卡：'+[...S.w].map((c,i)=>'<span class="'+(i<wordGot?'got':'')+'">'+(i<wordGot?c:'？')+'</span>').join(''); }
+function renderWordbar(){ const S=WORDSETS[wordKey]; if(!S) return; wordbar.innerHTML='🪷 撈起課文：'+[...S.w].map((c,i)=>'<span class="'+(i<wordGot?'got':'')+'">'+(i<wordGot?c:'？')+'</span>').join(''); }
 let wordWarnT=0;
 function updWords(t){ if(!wordKey||mode!=='lake'||talking) return; tokens.forEach(k=>{ if(k.got) return; k.s.position.y=1.8+Math.sin(t*2+k.i)*0.25;
     if(Math.hypot(P.x-k.x,P.z-k.z)<3){ if(k.i===wordGot){ k.got=true; scene.remove(k.s); wordGot++; tone('pop'); renderWordbar();
-        if(wordGot===tokens.length){ tone('ding'); toast('撈齊了：「'+WORDSETS[wordKey].w+'」！'); setTimeout(()=>{ wordbar.hidden=true; },1800); wordKey=null; } }
+        if(wordGot===tokens.length){ tone('ding'); const S=WORDSETS[wordKey]; wordKey=null; setTimeout(()=>{ wordbar.hidden=true; if(!talking) play([{q:S.q}],updHint,true); },700); } }
       else if(t-wordWarnT>2){ wordWarnT=t; toast('要照順序撈，先找「'+tokens[wordGot].ch+'」'); } } }); }
 
 // ---------- 鍵盤與方向按鈕 ----------
@@ -1170,7 +1174,7 @@ function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
 const pv=new T.Vector3();
 function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.x)>1.1||Math.abs(pv.y)>1.1){ el.style.display='none'; return; } el.style.display=''; el.style.left=((pv.x+1)/2*innerWidth)+'px'; el.style.top=((1-pv.y)/2*innerHeight)+'px'; }
 updHint(); loop();
-window.__dbg={P,setTarget,next,get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
+window.__dbg={P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
 })();
 </script>
 
