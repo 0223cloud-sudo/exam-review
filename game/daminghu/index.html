@@ -102,6 +102,10 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 .endbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .endbtns button{font:inherit;font-size:17px;padding:8px 20px;border:none;border-radius:6px;background:var(--seal);color:#fff;cursor:pointer}
 #toast{z-index:20}
+#compass{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:92px;z-index:4;pointer-events:none;text-align:center}
+#compass svg{width:92px;height:92px;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+#compass .cap{font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1px 4px;margin-top:2px}
+@media (max-width:600px){#compass,#compass svg{width:72px}#compass svg{height:72px}}
 #start{z-index:40}
 @media (max-width:700px){#txt{font-size:18px}#actor{height:46vh}#dlg{max-height:60vh}}
 @media (prefers-reduced-motion:reduce){.bg{animation:none}}
@@ -115,6 +119,15 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
   <div class="chip" id="hint">下一站：鵲華橋</div>
 </div>
 <div id="labels"></div>
+<div id="compass" aria-label="方位：上北下南，左西右東"><svg viewBox="0 0 100 100" aria-hidden="true">
+  <circle cx="50" cy="50" r="44" fill="#f4ecd8" stroke="#8a6f4a" stroke-width="2"/>
+  <circle cx="50" cy="50" r="36" fill="none" stroke="#c9b48c" stroke-width="1"/>
+  <path d="M50 14 L57 50 L50 46 L43 50Z" fill="#b23a2a"/><path d="M50 86 L57 50 L50 54 L43 50Z" fill="#5a4a3a"/>
+  <text x="50" y="12" text-anchor="middle" font-size="13" font-weight="700" fill="#b23a2a">北</text>
+  <text x="50" y="99" text-anchor="middle" font-size="12" fill="#3a2e24">南</text>
+  <text x="96" y="54" text-anchor="middle" font-size="12" fill="#3a2e24">東</text>
+  <text x="5" y="54" text-anchor="middle" font-size="12" fill="#3a2e24">西</text>
+</svg><div class="cap">千佛山在南方 ↓</div></div>
 <div id="vn" hidden>
   <div id="bgA" class="bg"></div><div id="bgB" class="bg"></div>
   <div id="sunset"></div><div id="fx"></div>
@@ -130,7 +143,7 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 <div id="toast"></div>
 <div id="start"><div class="card">
   <h1>跟著老殘遊明湖</h1>
-  <p>你是老殘的小藥童。<br>幫鵲華橋邊的老畫師，把大明湖的景色一處一處帶回來，完成《明湖長卷》。</p><p>點地面走路，點湖面坐船。到了景點，讀課文、回答老殘的問題。</p>
+  <p>你是老殘的小藥童。<br>幫鵲華橋邊的老畫師，把大明湖的景色一處一處帶回來，完成《明湖長卷》。</p><p>點地面走路，點湖面坐船。跟著<b style="color:#b23a2a">紅色箭頭</b>和左下角的羅盤找下一站。到了景點，讀課文、回答老殘的問題。</p>
   <p style="font-size:13px">建議打開聲音 🔊</p>
   <button id="go">出發</button>
 </div></div>
@@ -145,13 +158,13 @@ const canvas = document.getElementById('c');
 const renderer = new T.WebGLRenderer({canvas, antialias:true});
 const DPR = Math.min(window.devicePixelRatio||1, 1.6);
 renderer.setPixelRatio(DPR);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = false;
 renderer.shadowMap.type = T.PCFSoftShadowMap;
 const scene = new T.Scene();
 const camera = new T.PerspectiveCamera(40, 1, 0.5, 1200);
 let seed = 7; function rnd(){ seed = (seed*16807)%2147483647; return (seed-1)/2147483646; }
 const RX = 60, RZ = 42;                 // 湖（橢圓）
-const ISL = {x:4, z:6, r:8};             // 湖心島
+const ISL = {x:-4, z:6, r:8};             // 湖心島
 function inLake(x,z){ return (x*x)/(RX*RX)+(z*z)/(RZ*RZ) < 1; }
 function onIsland(x,z){ return Math.hypot(x-ISL.x,z-ISL.z) < ISL.r-0.6; }
 function isWater(x,z){ return inLake(x,z) && !onIsland(x,z); }
@@ -164,8 +177,8 @@ const sky = new T.Mesh(new T.SphereGeometry(900,32,16), new T.ShaderMaterial({
   fragmentShader:'uniform vec3 top; uniform vec3 bot; varying vec3 p; void main(){ float h=clamp(p.y/420.,0.,1.); gl_FragColor=vec4(mix(bot,top,pow(h,.6)),1.); }'
 }));
 scene.add(sky);
-scene.fog = new T.Fog('#e9e6d6', 140, 520);
-const hemi = new T.HemisphereLight('#fff6e0', '#6f8a5a', 0.75); scene.add(hemi);
+scene.fog = new T.Fog('#eadcb8', 80, 340);
+const hemi = new T.HemisphereLight('#fff3dc', '#8a7a50', 0.9); scene.add(hemi);
 const sun = new T.DirectionalLight('#fff3dc', 0.85);
 sun.castShadow = true; sun.shadow.mapSize.set(1024,1024);
 const sc = sun.shadow.camera; sc.left=-45; sc.right=45; sc.top=45; sc.bottom=-45; sc.near=10; sc.far=260;
@@ -182,16 +195,16 @@ function hipRoof(w,d,h,c){ const g=new T.ConeGeometry(Math.SQRT1_2,1,4,1); g.rot
 const shape = new T.Shape(); shape.moveTo(-400,-400); shape.lineTo(400,-400); shape.lineTo(400,400); shape.lineTo(-400,400); shape.lineTo(-400,-400);
 const hole = new T.Path(); hole.absellipse(0,0,RX,RZ,0,Math.PI*2,true,0); shape.holes.push(hole);
 const gGeo = new T.ShapeGeometry(shape, 64); gGeo.rotateX(-Math.PI/2);
-const ground = new T.Mesh(gGeo, lam('#9cbf73')); ground.position.y = 0.3; ground.receiveShadow = true; scene.add(ground);
+const ground = new T.Mesh(gGeo, lam('#b9b88e')); ground.position.y = 0.3; ground.receiveShadow = true; scene.add(ground);
 // 湖岸和環湖步道
 function ellRing(a,b,col,y){ const g=new T.RingGeometry(a,b,96); g.rotateX(-Math.PI/2); g.scale(RX,1,RZ); const m=new T.Mesh(g,lam(col)); m.position.y=y; m.receiveShadow=true; scene.add(m); }
-ellRing(1.0,1.035,'#cdb98a',0.32); ellRing(1.07,1.1,'#ddd2b4',0.33);
+ellRing(1.0,1.035,'#b59a62',0.32); ellRing(1.07,1.1,'#e2d4ae',0.33);
 // 湖底（反射水面下的顏色）
-const bed = new T.Mesh(new T.CircleGeometry(1,64).rotateX(-Math.PI/2).scale(RX,1,RZ), lam('#5d8c88')); bed.position.y=-1.5; scene.add(bed);
+const bed = new T.Mesh(new T.CircleGeometry(1,64).rotateX(-Math.PI/2).scale(RX,1,RZ), lam('#8fa89a')); bed.position.y=-1.5; scene.add(bed);
 
 // ---------- 水面（真的會反射） ----------
 const waterShader = {
-  uniforms:{ color:{value:null}, tDiffuse:{value:null}, textureMatrix:{value:null}, time:{value:0}, tint:{value:new T.Color('#6f9c9c')} },
+  uniforms:{ color:{value:null}, tDiffuse:{value:null}, textureMatrix:{value:null}, time:{value:0}, tint:{value:new T.Color('#9fb9ae')} },
   vertexShader:'uniform mat4 textureMatrix; varying vec4 vUv; varying vec2 vP; void main(){ vUv=textureMatrix*vec4(position,1.); vP=position.xy; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:[
     'uniform sampler2D tDiffuse; uniform float time; uniform vec3 tint; varying vec4 vUv; varying vec2 vP;',
@@ -199,8 +212,8 @@ const waterShader = {
     ' vec2 d=vec2(sin(vP.y*0.55+time*1.2)+sin(vP.x*0.23-time*0.8), cos(vP.x*0.47+time*1.0)+sin(vP.y*0.19+time*0.6))*0.0035;',
     ' vec4 uv=vUv; uv.xy+=d*uv.w;',
     ' vec3 r=texture2DProj(tDiffuse,uv).rgb;',
-    ' float sp=pow(max(0.,sin(vP.x*0.9+time*1.5+sin(vP.y*0.7)*2.)*sin(vP.y*1.3-time+sin(vP.x*0.4)*2.)),40.)*0.18;',
-    ' gl_FragColor=vec4(mix(tint,r,0.72)+sp,1.);',
+    ' float sp=0.;',
+    ' gl_FragColor=vec4(mix(tint,r*vec3(.85,.95,1.),0.38)+sp,1.);',
     '}'].join('\n')
 };
 const wGeo = new T.CircleGeometry(1,96); wGeo.scale(RX,RZ,1);
@@ -208,7 +221,7 @@ const water = new T.Reflector(wGeo, {shader:waterShader, textureWidth:Math.round
 water.rotation.x = -Math.PI/2; water.position.y = 0; scene.add(water);
 
 // ---------- 湖心島與歷下亭 ----------
-const isl = new T.Mesh(new T.CylinderGeometry(ISL.r, ISL.r+0.8, 1.2, 28), lam('#a9c47e')); isl.position.set(ISL.x,-0.3,ISL.z); isl.receiveShadow=true; scene.add(isl);
+const isl = new T.Mesh(new T.CylinderGeometry(ISL.r, ISL.r+0.8, 1.2, 28), lam('#b9b07a')); isl.position.set(ISL.x,-0.3,ISL.z); isl.receiveShadow=true; scene.add(isl);
 const pav = new T.Group(); pav.position.set(ISL.x,0.3,ISL.z); scene.add(pav);
 { const base=new T.Mesh(new T.CylinderGeometry(3.4,3.6,0.6,8),lam('#d8cfbd')); base.position.y=0.3; base.receiveShadow=base.castShadow=true; pav.add(base);
   for(let i=0;i<8;i++){ const a=i/8*Math.PI*2+Math.PI/8; const c=new T.Mesh(new T.CylinderGeometry(0.18,0.18,3.2,6),lam('#a8432f')); c.position.set(Math.cos(a)*2.8,2.2,Math.sin(a)*2.8); c.castShadow=true; pav.add(c); }
@@ -221,7 +234,7 @@ const pav = new T.Group(); pav.position.set(ISL.x,0.3,ISL.z); scene.add(pav);
 box(3,0.3,1.4,'#8a6a46',ISL.x,0.25,ISL.z-ISL.r-0.4);
 
 // ---------- 鐵公祠 ----------
-const tie = new T.Group(); tie.position.set(-60,0.3,40); tie.rotation.y = -0.6; scene.add(tie);
+const tie = new T.Group(); tie.position.set(60,0.3,40); tie.rotation.y = Math.PI+0.6; scene.add(tie);
 { // 圍牆
   box(22,2.2,0.6,'#d9d3c4',0,1.1,-8,tie); box(22,2.2,0.6,'#d9d3c4',0,1.1,8,tie); box(0.6,2.2,16,'#d9d3c4',-11,1.1,0,tie);
   box(0.6,2.2,6,'#d9d3c4',11,1.1,-5,tie); box(0.6,2.2,6,'#d9d3c4',11,1.1,5,tie);
@@ -238,55 +251,61 @@ const tie = new T.Group(); tie.position.set(-60,0.3,40); tie.rotation.y = -0.6; 
 }
 
 // ---------- 古水仙祠（舊、有點歪） ----------
-const shui = new T.Group(); shui.position.set(14,0.3,52); shui.rotation.y = Math.PI; scene.add(shui);
+const shui = new T.Group(); shui.position.set(-14,0.3,52); shui.rotation.y = 0; scene.add(shui);
 { box(9,3,4.5,'#a88a6a',0,1.5,0,shui); const r=hipRoof(10,5.5,2,'#6c6f68'); r.position.set(0,3.9,0); r.rotation.z=0.04; shui.add(r);
   box(1.4,2,0.1,'#4a3a2a',0,1,2.3,shui); box(3,0.7,0.12,'#7a6a52',0,2.6,2.35,shui); }
 
 // ---------- 鵲華橋（南岸，跨過出水口） ----------
-const bridge = new T.Group(); bridge.position.set(30,0,-38.5); bridge.rotation.y = -0.55; scene.add(bridge);
+const bridge = new T.Group(); bridge.position.set(-30,0,-38.5); bridge.rotation.y = 0.55; scene.add(bridge);
 { const arch=new T.Mesh(new T.TorusGeometry(4.5,0.7,8,24,Math.PI),lam('#efece4')); arch.castShadow=true; bridge.add(arch);
   const deck=new T.Mesh(new T.TorusGeometry(4.5,0.25,4,24,Math.PI),lam('#c9c3b5')); deck.scale.set(1,1,4); deck.position.y=0.5; bridge.add(deck); }
 // 出水的小河
-const stream=new T.Mesh(new T.PlaneGeometry(9,40).rotateX(-Math.PI/2),lam('#7aa6a6')); stream.position.set(40,0.31,-55); stream.rotation.y=-0.55; scene.add(stream);
+const stream=new T.Mesh(new T.PlaneGeometry(9,40).rotateX(-Math.PI/2),lam('#9fb9ae')); stream.position.set(-40,0.31,-55); stream.rotation.y=0.55; scene.add(stream);
 
 // ---------- 千佛山（南方遠山） ----------
 const peaks=[[-210,-175,48,55],[-120,-170,62,45],[-45,-152,74,40],[25,-168,66,44],[100,-150,52,38],[175,-172,60,50],[60,-128,30,26],[-80,-128,30,26],[240,-160,45,50]];
 function mh(x,z){ let h=0; for(const p of peaks){ const dx=x-p[0],dz=z-p[1]; h+=p[2]*Math.exp(-(dx*dx+dz*dz)/(p[3]*p[3])); }
   h+=3*Math.sin(x*.13)*Math.sin(z*.17)+2*Math.sin(x*.31+z*.2); const f=Math.min(1,Math.max(0,(-z-92)/22)); return Math.max(0,h*f); }
 { const g=new T.PlaneGeometry(620,170,124,40); g.rotateX(-Math.PI/2); g.translate(0,0,-180);
-  const pos=g.attributes.position, col=[]; const cTop=new T.Color('#2f6a86'), cMid=new T.Color('#2f7d5a'), cLow=new T.Color('#9bb86a'), c=new T.Color();
+  const pos=g.attributes.position, col=[]; const cTop=new T.Color('#2e5f7a'), cMid=new T.Color('#3f8a68'), cLow=new T.Color('#b59a62'), c=new T.Color();
   for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i), h=mh(x,z); pos.setY(i,h+0.2);
     const t=Math.min(1,h/60); if(t<.5) c.copy(cLow).lerp(cMid,t*2); else c.copy(cMid).lerp(cTop,(t-.5)*2); c.offsetHSL(0,0,(rnd()-.5)*.05); col.push(c.r,c.g,c.b); }
   g.setAttribute('color',new T.Float32BufferAttribute(col,3)); g.computeVertexNormals();
-  const m=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:1})); scene.add(m); }
+  const m=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:1})); scene.add(m);
+  const m2=m.clone(); m2.rotation.y=Math.PI; m2.scale.y=0.5; scene.add(m2); /* 北方的遠山，鏡頭朝北時看得到 */ }
 // 山上的寺廟、松柏、楓樹
 function spots(n,minH){ const r=[]; let tries=0; while(r.length<n && tries<5000){ tries++; const x=(rnd()-.5)*460, z=-100-rnd()*110, h=mh(x,z); if(h>minH) r.push([x,h,z]); } return r; }
 function inst(geo,mat,list,sc,cast){ const im=new T.InstancedMesh(geo,mat,list.length); const o=new T.Object3D();
   list.forEach((p,i)=>{ o.position.set(p[0],p[1],p[2]); const s=sc*(0.8+rnd()*0.5); o.scale.set(s,s,s); o.rotation.y=rnd()*6; o.updateMatrix(); im.setMatrixAt(i,o.matrix); }); if(cast) im.castShadow=true; scene.add(im); return im; }
-{ const pg=new T.ConeGeometry(1.4,5,6); pg.translate(0,2.5,0); inst(pg,lam('#1f4f3a'),spots(260,6),1,false);
-  const mg=new T.IcosahedronGeometry(2,0); mg.translate(0,2,0); inst(mg,lam('#d2402a'),spots(70,8),1,false); inst(mg,lam('#e07a2a'),spots(25,8),0.9,false);
+{ const pg=new T.ConeGeometry(1.4,5,6); pg.translate(0,2.5,0); inst(pg,lam('#2c5a46'),spots(260,6),1,false);
+  const mg=new T.IcosahedronGeometry(2,0); mg.translate(0,2,0); inst(mg,lam('#c0402a'),spots(70,8),1,false); inst(mg,lam('#d98a3a'),spots(25,8),0.9,false);
   const tw=new T.BoxGeometry(5,3,4); tw.translate(0,1.5,0); const tr=new T.ConeGeometry(4,2.2,4); tr.rotateY(Math.PI/4); tr.translate(0,4,0);
   const ts=spots(26,14); inst(tw,lam('#f2efe6'),ts,1,false); inst(tr,lam('#2a4652'),ts,1,false);
   const rw=new T.BoxGeometry(4,2.6,3.4); rw.translate(0,1.3,0); const rs=spots(18,10); inst(rw,lam('#b8402c'),rs,1,false); inst(tr,lam('#2a4652'),rs,0.9,false); }
 
 // ---------- 湖邊的柳樹、樹、蘆葦、荷葉 ----------
 { const W=[]; for(let i=0;i<70;i++){ const a=rnd()*Math.PI*2, k=1.12+rnd()*0.22, x=Math.cos(a)*RX*k, z=Math.sin(a)*RZ*k;
-    if(Math.hypot(x+60,z-40)<16 || Math.hypot(x-14,z-52)<9 || Math.hypot(x-30,z+38.5)<8 || z<-RZ*0.95) continue; W.push([x,0.3,z]); }
-  const tg=new T.CylinderGeometry(0.25,0.35,3,5); tg.translate(0,1.5,0); inst(tg,lam('#6b5236'),W,1,true);
-  const cg=new T.ConeGeometry(2.4,5,8,1,true); cg.translate(0,4.3,0); inst(cg,new T.MeshLambertMaterial({color:'#a3c76a',side:T.DoubleSide}),W,1,true);
-  const tg2=[]; for(let i=0;i<90;i++){ const x=(rnd()-.5)*240, z=(rnd()-.5)*150; if(inLake(x*0.85,z*0.85)||z<-70||Math.hypot(x+60,z-40)<16||Math.hypot(x-14,z-52)<9) continue; tg2.push([x,0.3,z]); }
-  const rg=new T.IcosahedronGeometry(2.6,0); rg.translate(0,4,0); inst(rg,lam('#6f9e55'),tg2,1,true); inst(tg,lam('#6b5236'),tg2,1,true);
-  ISL_TREES: { const it=[[ISL.x-5.8,0.3,ISL.z+3.5],[ISL.x+5.8,0.3,ISL.z+3]]; inst(tg,lam('#6b5236'),it,0.7,true); inst(cg,new T.MeshLambertMaterial({color:'#a3c76a',side:T.DoubleSide}),it,0.7,true); }
+    if(Math.hypot(x-60,z-40)<16 || Math.hypot(x+14,z-52)<9 || Math.hypot(x+30,z+38.5)<8 || z<-RZ*0.95) continue; W.push([x,0.3,z]); }
+  const tg=new T.CylinderGeometry(0.25,0.35,3,5); tg.translate(0,1.5,0); inst(tg,lam('#5a4632'),W,1,true);
+  const cg=new T.ConeGeometry(2.4,5,8,1,true); cg.translate(0,4.3,0); inst(cg,new T.MeshLambertMaterial({color:'#a9ad5e',side:T.DoubleSide}),W,1,true);
+  const tg2=[]; for(let i=0;i<90;i++){ const x=(rnd()-.5)*240, z=(rnd()-.5)*150; if(inLake(x*0.85,z*0.85)||z<-70||Math.hypot(x-60,z-40)<16||Math.hypot(x+14,z-52)<9) continue; tg2.push([x,0.3,z]); }
+  const rg=new T.IcosahedronGeometry(2.6,1); rg.translate(0,4,0);
+  inst(rg,lam('#4f7f5c'),tg2.filter((_,i)=>i%4<2),1,true); inst(rg,lam('#c9823a'),tg2.filter((_,i)=>i%4===2),0.9,true); inst(rg,lam('#b8452e'),tg2.filter((_,i)=>i%4===3),0.85,true);
+  inst(tg,lam('#5a4632'),tg2,1,true);
+  // 湖岸的青綠色石頭（插圖裡常見）
+  const RK=[]; for(let i=0;i<70;i++){ const a=rnd()*Math.PI*2, k=1.02+rnd()*0.06, x=Math.cos(a)*RX*k, z=Math.sin(a)*RZ*k; if(Math.hypot(x-60,z-40)<14||Math.hypot(x+30,z+38.5)<7) continue; RK.push([x,0.1,z]); }
+  const rkg=new T.DodecahedronGeometry(1.1,0); rkg.scale(1.3,0.7,1); inst(rkg,lam('#4f7f86'),RK,1,false);
+  ISL_TREES: { const it=[[ISL.x-5.8,0.3,ISL.z+3.5],[ISL.x+5.8,0.3,ISL.z+3]]; inst(tg,lam('#5a4632'),it,0.7,true); inst(cg,new T.MeshLambertMaterial({color:'#a9ad5e',side:T.DoubleSide}),it,0.7,true); }
 }
 // 南岸蘆葦（白花，夕陽時變粉紅）
 const reedTipMat = new T.MeshLambertMaterial({color:'#f6f2e8'});
-{ const R=[]; for(let x=-55;x<24;x+=0.55){ const ez=-RZ*Math.sqrt(Math.max(0,1-(x*x)/(RX*RX))); for(let k=0;k<2;k++) R.push([x+(rnd()-.5)*.5,0.1,ez-0.6-rnd()*2.6]); }
+{ const R=[]; for(let x=-24;x<55;x+=0.55){ const ez=-RZ*Math.sqrt(Math.max(0,1-(x*x)/(RX*RX))); for(let k=0;k<2;k++) R.push([x+(rnd()-.5)*.5,0.1,ez-0.6-rnd()*2.6]); }
   const sg=new T.CylinderGeometry(0.04,0.06,2.6,4); sg.translate(0,1.3,0); inst(sg,lam('#b8a36a'),R,1,false);
   const tg=new T.SphereGeometry(0.22,6,5); tg.scale(1,2.4,1); tg.translate(0,2.8,0); inst(tg,reedTipMat,R,1,false); }
 // 荷葉、荷花（歷下亭後面最多）
 { const L=[], F=[]; for(let i=0;i<260;i++){ const a=rnd()*Math.PI*2, d=ISL.r+1+rnd()*14, x=ISL.x+Math.cos(a)*d*1.3, z=ISL.z+Math.abs(Math.sin(a))*d+2;
     if(!isWater(x,z)) continue; (rnd()<.12?F:L).push([x,0.06,z]); }
-  const lg=new T.CircleGeometry(1,9); lg.rotateX(-Math.PI/2); const im=inst(lg,lam('#5f8f4a'),L,1,false);
+  const lg=new T.CircleGeometry(1,9); lg.rotateX(-Math.PI/2); const im=inst(lg,lam('#4c7a5c'),L,1,false);
   const lg2=new T.CircleGeometry(1,9); lg2.rotateX(-Math.PI/2); const D=[]; for(let i=0;i<60;i++){ const a=rnd()*Math.PI*2, d=ISL.r+1+rnd()*14, x=ISL.x+Math.cos(a)*d*1.3, z=ISL.z+Math.abs(Math.sin(a))*d+2; if(isWater(x,z)) D.push([x,0.075,z]); } inst(lg2,lam('#b5a35a'),D,0.9,false); // 初枯的荷葉
   const fg=new T.ConeGeometry(0.45,0.8,6); fg.rotateX(Math.PI); fg.translate(0,0.7,0); inst(fg,lam('#e9a6b6'),F,1,false);
   const pg=new T.CylinderGeometry(0.35,0.2,0.4,8); pg.translate(0,1.0,0); inst(pg,lam('#8a9a4a'),F,1,false); }
@@ -317,12 +336,12 @@ function spawnBirds(x,z){ for(let i=0;i<9;i++){ const b=new T.Group(); const wl=
   b.position.set(x+(rnd()-.5)*8,0.6,z+(rnd()-.5)*8); b.userData={wl,wr,v:new T.Vector3((rnd()-.5)*6,5+rnd()*3,-4-rnd()*4),p:rnd()*6,life:0}; scene.add(b); birds.push(b);} }
 
 // 老畫師（鵲華橋邊）
-const painter=figure('#7a5a4a',false); painter.position.set(36,0.3,-34); painter.rotation.y=-2.2; scene.add(painter);
-box(2.4,1,1.2,'#8a6a46',37.5,0.8,-32.2); box(2.2,0.05,0.9,'#f6f0e0',37.5,1.33,-32.2);
+const painter=figure('#7a5a4a',false); painter.position.set(-36,0.3,-34); painter.rotation.y=0.6; scene.add(painter);
+box(2.4,1,1.2,'#8a6a46',-37.5,0.8,-32.2); box(2.2,0.05,0.9,'#f6f0e0',-37.5,1.33,-32.2);
 // ---------- 玩家移動 ----------
-const P = new T.Vector3(31,0.3,-33);   // 從鵲華橋邊出發
+const P = new T.Vector3(-31,0.3,-33);   // 從鵲華橋邊出發
 let target = null, heading = Math.PI, walkPhase = 0, inBoat=false;
-const laoPos = new T.Vector3(33,0.3,-31);
+const laoPos = new T.Vector3(-33,0.3,-31);
 const BOUND={x:95,zMin:-62,zMax:78};
 function setTarget(x,z){ x=Math.max(-BOUND.x,Math.min(BOUND.x,x)); z=Math.max(BOUND.zMin,Math.min(BOUND.zMax,z)); target=new T.Vector3(x,0.3,z); }
 
@@ -504,11 +523,11 @@ const SCENES={
   {act:()=>showEnd()}]
 };
 const stations=[
- {id:'que', name:'鵲華橋', x:30,z:-37, r:7},
+ {id:'que', name:'鵲華橋', x:-30,z:-37, r:7},
  {id:'lixia', name:'歷下亭', x:ISL.x,z:ISL.z, r:11},
- {id:'tie', name:'鐵公祠', x:-50,z:30, r:9},
- {id:'shui', name:'古水仙祠', x:14,z:47, r:7},
- {id:'he', name:'荷花叢', x:6,z:22, r:6}];
+ {id:'tie', name:'鐵公祠', x:50,z:30, r:9},
+ {id:'shui', name:'古水仙祠', x:-14,z:47, r:7},
+ {id:'he', name:'荷花叢', x:-6,z:22, r:6}];
 const GOALS={lixia:'點湖面，往北划到歷下亭',tie:'點湖面，往西划到鐵公祠',shui:'沿著北岸往東走，到古水仙祠',he:'划船到歷下亭後面的荷花叢',end:'划回鵲華橋，把景色交給老畫師'};
 const order=['lixia','tie','shui','he','end'];
 const CARDS=['鵲華橋','歷下亭','鐵公祠','千佛山','明湖倒影','蘆花絨毯','古水仙祠','蓮蓬'];
@@ -722,13 +741,13 @@ const cines={
   shui:{pos:new T.Vector3(14,8,36), look:new T.Vector3(14,3,52)} };
 function cine(m){ cineMode=m; }
 function desiredCam(){ if(cineMode){ return cines[cineMode]; }
-  return {pos:new T.Vector3(P.x, P.y+30, P.z+27), look:new T.Vector3(P.x, P.y, P.z-4)}; }
+  return {pos:new T.Vector3(P.x, P.y+34, P.z-36), look:new T.Vector3(P.x, P.y, P.z+10)}; }
 
 // ---------- 時間（午後 → 夕陽） ----------
 let dusk=0, duskNow=0;
 const C=(a)=>new T.Color(a);
-const day ={top:C('#8fbfd6'),bot:C('#f3ead2'),fog:C('#e9e6d6'),sun:C('#fff3dc'),tint:C('#6f9c9c'),reed:C('#f6f2e8')};
-const eve ={top:C('#7d8fb8'),bot:C('#f2b48a'),fog:C('#e8bfa0'),sun:C('#ffb07a'),tint:C('#8a7f86'),reed:C('#f0a9b4')};
+const day ={top:C('#d6cfaa'),bot:C('#f0e4c4'),fog:C('#eadcb8'),sun:C('#ffe9c0'),tint:C('#5f9fa0'),reed:C('#f4efe2')};
+const eve ={top:C('#c99a74'),bot:C('#f0b98e'),fog:C('#e8c3a0'),sun:C('#ffb07a'),tint:C('#9a8c8a'),reed:C('#f0a9b4')};
 function applyTime(t){ skyU.top.value.copy(day.top).lerp(eve.top,t); skyU.bot.value.copy(day.bot).lerp(eve.bot,t);
   scene.fog.color.copy(day.fog).lerp(eve.fog,t); sun.color.copy(day.sun).lerp(eve.sun,t); sun.intensity=0.85-0.2*t; hemi.intensity=0.75-0.15*t;
   water.material.uniforms.tint.value.copy(day.tint).lerp(eve.tint,t); reedTipMat.color.copy(day.reed).lerp(eve.reed,t); }
@@ -747,6 +766,61 @@ document.getElementById('go').addEventListener('click',()=>{ document.getElement
 function resize(){ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   water.getRenderTarget && water.getRenderTarget().setSize(Math.round(innerWidth*DPR*0.6),Math.round(innerHeight*DPR*0.6)); }
 addEventListener('resize',resize); resize();
+
+// ---------- 青綠山水濾鏡：墨線＋絹布底色＋暖黃色調 ----------
+const rtOpt={minFilter:T.LinearFilter,magFilter:T.LinearFilter,format:T.RGBAFormat};
+const inkRT = (renderer.capabilities.isWebGL2 && T.WebGLMultisampleRenderTarget) ? new T.WebGLMultisampleRenderTarget(4,4,rtOpt) : new T.WebGLRenderTarget(4,4,rtOpt);
+const postScene=new T.Scene(), postCam=new T.OrthographicCamera(-1,1,1,-1,0,1);
+const inkMat=new T.ShaderMaterial({ depthTest:false, depthWrite:false,
+  uniforms:{ tDiffuse:{value:inkRT.texture}, res:{value:new T.Vector2(4,4)}, warm:{value:0} },
+  vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }',
+  fragmentShader:[
+   'uniform sampler2D tDiffuse; uniform vec2 res; uniform float warm; varying vec2 vUv;',
+   'float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }',
+   'float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y); }',
+   'float L(vec2 uv){ vec3 c=texture2D(tDiffuse,uv).rgb; return dot(c,vec3(.299,.587,.114)); }',
+   'void main(){',
+   ' vec2 px=1./res; vec2 uv=vUv;',
+   ' vec2 wob=(vec2(n(uv*vec2(90.,70.)),n(uv*vec2(70.,90.)+5.))-.5)*2.2*px;',   // 手繪的輕微抖動
+   ' vec3 c=texture2D(tDiffuse,uv+wob).rgb;',
+   ' vec2 d=px*1.4;',
+   ' float tl=L(uv+vec2(-d.x,d.y)),t=L(uv+vec2(0.,d.y)),tr=L(uv+d),l=L(uv-vec2(d.x,0.)),r=L(uv+vec2(d.x,0.)),bl=L(uv-d),b=L(uv-vec2(0.,d.y)),br=L(uv+vec2(d.x,-d.y));',
+   ' float gx=-tl-2.*l-bl+tr+2.*r+br, gy=-tl-2.*t-tr+bl+2.*b+br;',
+   ' float e=smoothstep(.10,.42,sqrt(gx*gx+gy*gy))*(.75+.5*n(uv*vec2(40.,30.)));',      // 墨線，粗細有變化
+   ' float lum=dot(c,vec3(.299,.587,.114));',
+   ' vec3 col=mix(vec3(lum),c,.82);',                                               // 稍微降低彩度，像礦物顏料
+   ' col=mix(col,col*vec3(1.06,1.0,.86),.35+.35*warm);',                              // 暖黃，接近插圖
+   ' vec3 silk=vec3(.96,.91,.80);',
+   ' float fib=n(uv*res*vec2(.9,.12))*.05+n(uv*res*vec2(.12,.9))*.05+n(uv*vec2(4.,3.))*.06;', // 絹布紋理
+   ' col=col*silk-fib*.35;',
+   ' col=mix(col,vec3(.16,.13,.10),e*.8);',
+   ' float v=smoothstep(.9,.3,length((uv-.5)*vec2(1.1,1.)));',                         // 四周暗角，像舊畫
+   ' col*=mix(.80,1.,v);',
+   ' gl_FragColor=vec4(col,1.);',
+   '}'].join('\n')
+});
+postScene.add(new T.Mesh(new T.PlaneGeometry(2,2),inkMat));
+function inkResize(){ const w=Math.round(innerWidth*DPR), hh=Math.round(innerHeight*DPR); inkRT.setSize(w,hh); inkMat.uniforms.res.value.set(w,hh); }
+addEventListener('resize',inkResize); inkResize();
+function drawScene(){ renderer.setRenderTarget(inkRT); renderer.render(scene,camera); renderer.setRenderTarget(null); renderer.render(postScene,postCam); }
+
+// ---------- 方位指引：下一站的紅色標記＋腳邊的箭頭 ----------
+const sealMat=new T.MeshBasicMaterial({color:'#b23a2a'});
+const beacon=new T.Group(); scene.add(beacon);
+{ const gem=new T.Mesh(new T.OctahedronGeometry(1.1,0),sealMat); gem.scale.y=1.6; beacon.add(gem); beacon.userData.gem=gem;
+  const ring=new T.Mesh(new T.RingGeometry(3.2,4,32).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:'#b23a2a',transparent:true,opacity:.6,side:T.DoubleSide})); ring.position.y=0.4; beacon.add(ring); beacon.userData.ring=ring; }
+const arrowShape=new T.Shape(); arrowShape.moveTo(0,1.6); arrowShape.lineTo(1.1,0.2); arrowShape.lineTo(0.38,0.35); arrowShape.lineTo(0.38,-1.2); arrowShape.lineTo(-0.38,-1.2); arrowShape.lineTo(-0.38,0.35); arrowShape.lineTo(-1.1,0.2); arrowShape.lineTo(0,1.6);
+const arrowGeo=new T.ShapeGeometry(arrowShape); arrowGeo.rotateX(Math.PI/2);
+const arrow=new T.Mesh(arrowGeo,new T.MeshBasicMaterial({color:'#b23a2a',transparent:true,opacity:.85,side:T.DoubleSide,depthWrite:false})); arrow.scale.setScalar(1.4); scene.add(arrow);
+function nextStation(){ const id=order[step]; if(!id||talking) return null; return id==='end'?stations[0]:stations.find(s=>s.id===id); }
+function updGuide(t){ const s=nextStation(); beacon.visible=arrow.visible=!!s;
+  if(!s) return;
+  beacon.position.set(s.x,0,s.z); beacon.userData.gem.position.y=9+Math.sin(t*2)*0.6; beacon.userData.gem.rotation.y=t;
+  const k=1+0.25*Math.sin(t*3); beacon.userData.ring.scale.set(k,1,k);
+  const dx=s.x-P.x, dz=s.z-P.z, dist=Math.hypot(dx,dz);
+  arrow.visible = dist>s.r+2;
+  arrow.position.set(P.x+dx/dist*6.5, 0.9, P.z+dz/dist*6.5); arrow.rotation.y=Math.atan2(dx,dz);
+  arrow.material.opacity=.6+.3*Math.sin(t*4); }
 
 // ---------- 主迴圈 ----------
 const clock=new T.Clock(); const tmp=new T.Vector3(); let first=true;
@@ -771,17 +845,17 @@ function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
   // 水鳥
   for(let i=birds.length-1;i>=0;i--){ const b=birds[i]; b.userData.life+=dt; b.position.addScaledVector(b.userData.v,dt); b.userData.p+=dt*14; const f=Math.sin(b.userData.p)*0.7; b.userData.wl.rotation.z=f; b.userData.wr.rotation.z=-f; if(b.userData.life>6){ scene.remove(b); birds.splice(i,1);} }
   // 時間
-  duskNow+=(dusk-duskNow)*Math.min(1,dt*0.6); applyTime(duskNow);
+  duskNow+=(dusk-duskNow)*Math.min(1,dt*0.6); applyTime(duskNow); inkMat.uniforms.warm.value=duskNow;
   // 鏡頭
   const dc=desiredCam(); const k=first?1:Math.min(1,dt*(cineMode?1.2:4)); camPos.lerp(dc.pos,k); camLook.lerp(dc.look,k); first=false;
   camera.position.copy(camPos); camera.lookAt(camLook);
   sun.position.set(P.x-60+duskNow*20, 90-duskNow*45, P.z+50-duskNow*90); sun.target.position.set(P.x,0,P.z); sc.updateProjectionMatrix();
   water.material.uniforms.time.value=t;
   checkStations();
-  if(!(talking && vn.classList.contains('on'))) renderer.render(scene,camera);
+  updGuide(t); if(!(talking && vn.classList.contains('on'))) drawScene();
   // 標籤
   stations.forEach(s=>place(s.el, s.x, s.id==='lixia'?8.5:s.id==='tie'?8:s.id==='shui'?6:s.id==='que'?5:2, s.z));
-  place(mLabel,-45,80,-152);
+  mLabel.style.display='none';
   requestAnimationFrame(loop); }
 const pv=new T.Vector3();
 function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.x)>1.1||Math.abs(pv.y)>1.1){ el.style.display='none'; return; } el.style.display=''; el.style.left=((pv.x+1)/2*innerWidth)+'px'; el.style.top=((1-pv.y)/2*innerHeight)+'px'; }
