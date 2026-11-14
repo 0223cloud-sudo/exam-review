@@ -153,12 +153,13 @@ body.vn #wordbar{display:none}
 <div id="compass" aria-label="方位：上北下南，左西右東"><svg viewBox="0 0 100 100" aria-hidden="true">
   <circle cx="50" cy="50" r="44" fill="#f4ecd8" stroke="#8a6f4a" stroke-width="2"/>
   <circle cx="50" cy="50" r="36" fill="none" stroke="#c9b48c" stroke-width="1"/>
+  <g id="facing"><path d="M50 20 L58 42 L50 37 L42 42Z" fill="#e0782a" stroke="#7a3a10" stroke-width="1"/><circle cx="50" cy="50" r="5" fill="#e0782a"/></g>
   <path d="M50 14 L57 50 L50 46 L43 50Z" fill="#b23a2a"/><path d="M50 86 L57 50 L50 54 L43 50Z" fill="#5a4a3a"/>
   <text x="50" y="12" text-anchor="middle" font-size="13" font-weight="700" fill="#b23a2a">北</text>
   <text x="50" y="99" text-anchor="middle" font-size="12" fill="#3a2e24">南</text>
   <text x="96" y="54" text-anchor="middle" font-size="12" fill="#3a2e24">東</text>
   <text x="5" y="54" text-anchor="middle" font-size="12" fill="#3a2e24">西</text>
-</svg><div class="cap">千佛山在南方 ↓</div></div>
+</svg><div class="cap"><span style="color:#e0782a">▲</span>你面向的方向</div></div>
 <div id="vn" hidden>
   <div id="bgA" class="bg"></div><div id="bgB" class="bg"></div>
   <canvas id="fxc" hidden></canvas><div id="sunset"></div><div id="fx"></div>
@@ -1118,7 +1119,7 @@ document.querySelectorAll('#pad button').forEach(b=>{ const k=KEYMAP[b.dataset.k
   b.addEventListener('pointerdown',e=>{ e.preventDefault(); keys[k]=1; b.setPointerCapture&&b.setPointerCapture(e.pointerId); });
   ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0)); });
 let mode='lake', turnT=0, turnFrom=0;
-const compassEl=document.querySelector('#compass svg');
+const compassEl=document.querySelector('#compass svg'), faceEl=document.querySelector('#compass #facing');
 
 // ---------- 主迴圈 ----------
 const clock=new T.Clock(); const tmp=new T.Vector3(); let first=true;
@@ -1159,6 +1160,7 @@ function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
   sun.position.set(P.x-60+duskNow*20, 90-duskNow*45, P.z+50-duskNow*90); sun.target.position.set(P.x,0,P.z); sc.updateProjectionMatrix();
   water.material.uniforms.time.value=t;
   if(mode==='inner') checkInner(); else checkStations();
+  if(mode!=='turn') faceEl.setAttribute('transform','rotate('+(-heading*180/Math.PI)+' 50 50)');
   updAmbient(t); updWords(t); updGuide(t); if(!(talking && vn.classList.contains('on') && !vn.classList.contains('clear'))) drawScene();
   // 標籤
   if(mode==='inner'){ INNER.forEach((w,i)=>{ innerLabels[i].classList.toggle('next',i===innerStep); innerLabels[i].classList.toggle('done',i<innerStep); place(innerLabels[i],w.x,6,w.z); }); }
