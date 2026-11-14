@@ -94,6 +94,7 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 .sun input{flex:1;min-width:0;height:30px}
 .cnt{grid-column:1/-1;font-size:20px;text-align:center}
 #field{position:absolute;inset:0;z-index:4}
+.cdot{display:inline-block;width:20px;height:20px;border-radius:50%;border:2px solid #6b5a44;vertical-align:-3px;margin-right:6px}
 .lbar{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(250,244,230,.95);border:2px solid var(--line);border-radius:20px;padding:8px 22px;font-size:22px;white-space:nowrap}
 .lbar b{color:var(--seal)}
 .pod.got{transform:scale(1.6);opacity:0;transition:.25s}
@@ -556,7 +557,10 @@ const SCENES={
   {w:'小藥童',t:'可是……我怎麼看不清山的顏色？'},
   {w:'老殘',t:'你仔細聽我怎麼形容，把顏色一個一個找回來。'},
   {task:'colors'},
-  {w:'老殘',t:'更有一株半株的丹楓夾在裡面，彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風。',hl:'彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風'},
+  {w:'老殘',t:'千佛山上，梵宇僧樓，與那蒼松翠柏，高下相間……更有一株半株的丹楓夾在裡面。',hl:'更有一株半株的丹楓夾在裡面'},
+  {w:'老殘',t:'小藥童，你看出來了嗎？這四種顏色，各是山上的什麼東西？'},
+  {task:'colormean'},
+  {w:'老殘',t:'這一片紅白青綠，彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風。',hl:'彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風'},
   {w:'老殘',t:'趙千里是宋朝的畫家，最會畫這種青綠山水。'},
   {quiz:'tieM',n:2},
   {act:()=>getCard('千佛山')},
@@ -758,6 +762,28 @@ const TASKS={
           record({q:'找回顏色：紅的火紅，白的雪白，青的靛青，綠的碧綠',o:['火紅、雪白、靛青、碧綠'],hl:'紅的火紅，白的雪白，青的靛青，綠的碧綠'},!miss,'配錯顏色'); goBtn(); } }
       else { miss=true; b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
     ch.appendChild(b); }); },
+ // 千佛山：每種顏色指的是山上的什麼
+ colormean(){ wait(); who.textContent='任務：顏色是什麼？'; setFace(null); showActor(null);
+  const C=[{c:'紅的火紅',k:'red',a:'丹楓',why:'紅色的是丹楓：葉子變紅的楓樹。'},
+           {c:'白的雪白',k:'white',a:'梵宇僧樓',why:'白色的是梵宇僧樓：寺廟和僧舍的白牆。'},
+           {c:'青的靛青',k:'blue',a:'蒼松',why:'青藍色的是蒼松：顏色深青的松樹。'},
+           {c:'綠的碧綠',k:'green',a:'翠柏',why:'碧綠色的是翠柏：翠綠的柏樹。'}];
+  const ITEMS=['丹楓','梵宇僧樓','蒼松','翠柏']; const COL={red:'#d0402a',white:'#f4f1ea',blue:'#2f5d8c',green:'#3d8a4a'};
+  let k=0, miss=false, picked=null; const got={};
+  const render=()=>{ const c=C[k];
+    txt.innerHTML='<span class="cdot" style="background:'+COL[c.k]+'"></span>「<b>'+c.c+'</b>」，指的是山上的什麼？'
+      +'<div class="colors">'+C.map((x,i)=>'<span class="'+(i<k?'got':i===k?'now':'')+'">'+x.c.slice(0,2)+'：'+(i<k?'<b>'+x.a+'</b>':'＿＿')+'</span>').join('　')+'</div>';
+    quoteEl.innerHTML='<span class="qt">線索：梵宇僧樓，與那蒼松翠柏，高下相間……更有一株半株的丹楓</span>';
+    ch.innerHTML=''; ITEMS.forEach(it=>{ const b=document.createElement('button'); b.type='button'; b.className='opt tile'; b.textContent=it; if(got[it]){ b.disabled=true; b.classList.add('right'); }
+      b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
+        if(it===c.a){ got[it]=1; tone('pop'); k++;
+          if(k<C.length){ render(); toast(c.why); }
+          else { tone('ding'); txt.innerHTML='<b class="ok">全部配對正確！</b><br>紅：丹楓　白：梵宇僧樓（寺廟白牆）　青：蒼松　綠：翠柏<br>老殘用四種顏色，把山上的寺廟、松柏、楓葉一次寫出來。';
+            quoteEl.innerHTML=''; ch.innerHTML='';
+            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓、白—梵宇僧樓、青—蒼松、綠—翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
+        else { if(!miss){ miss=true; picked=c.c.slice(0,2)+'配'+it; } b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
+      ch.appendChild(b); }); };
+  render(); },
  // 倒影：低頭看
  lookdown(){ wait(); who.textContent='任務'; setFace(null); showActor(null);
   txt.innerHTML='漁人在湖上唱歌。往下看看，湖裡有什麼？'; quoteEl.innerHTML='';
