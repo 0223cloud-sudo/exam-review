@@ -1,4 +1,5 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+
 <title>跟著老殘遊明湖</title>
 <style>
 /* 全螢幕 3D 畫面，上面疊一層古風介面 */
@@ -28,17 +29,54 @@ html,body{height:100%;margin:0;overflow:hidden;background:#cfe0e6;color:var(--in
 .hud{z-index:10}
 #vn{position:fixed;inset:0;z-index:5;opacity:0;transition:opacity .6s;background:#2d3a35;overflow:hidden}
 #vn.on{opacity:1}
-.bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .9s,filter 1s,transform-origin 1.8s ease;animation:kb 28s ease-in-out infinite alternate;will-change:transform}
+/* 插圖完整顯示（不裁切）：中間是完整的圖，四周用同一張圖的模糊放大版補滿 */
+.bg{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .9s,filter 1s;background:#2d3a35}
+.bg::before{content:"";position:absolute;inset:-40px;background:var(--im) center/cover no-repeat;filter:blur(22px) brightness(.72) saturate(.9)}
+.bg::after{content:"";position:absolute;inset:0;background:var(--im) 50% 30%/contain no-repeat}
 .bg.in{opacity:1}
-@keyframes kb{from{transform:scale(1.03)}to{transform:scale(1.1) translate(-1.2%,-1%)}}
-.bg.tall{animation:none;transform:scale(1.55);transform-origin:50% 18%}
-.bg.tall.down{transform:scale(1);transform-origin:50% 50%}
-.bg{transition:opacity .9s,filter 1s,transform 2.4s ease,transform-origin 1.8s ease}
-#fxc{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1}
-#fxc.tall{transform:scale(1.55);transform-origin:50% 18%}
+#pic{position:absolute;transform-origin:50% 30%;transition:transform 2.8s ease}
+#pic canvas{position:absolute;left:0;top:0;width:100%;height:100%}
+#tags{position:absolute;inset:0;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,calc(-100% - 8px));background:rgba(178,58,42,.93);color:#fff;font-size:clamp(14px,1.7vw,19px);font-weight:700;padding:3px 12px;border-radius:14px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);animation:tagIn .45s ease-out}
+.tag::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:7px solid transparent;border-top-color:rgba(178,58,42,.93)}
+.tag.blue{background:rgba(47,93,110,.93)}.tag.blue::after{border-top-color:rgba(47,93,110,.93)}
+@keyframes tagIn{from{opacity:0;transform:translate(-50%,calc(-100% - 22px))}}
+#cap{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:2;background:rgba(250,244,230,.93);border:2px solid #a8322a;border-radius:4px;padding:6px 18px 6px 14px;font-size:clamp(18px,2.6vw,28px);letter-spacing:4px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+#cap::before{content:"明湖";display:inline-block;writing-mode:vertical-rl;font-size:.42em;letter-spacing:0;background:#b23a2a;color:#f6e3b4;padding:3px 2px;margin-right:10px;vertical-align:middle;border-radius:2px}
+#songBanner{position:absolute;top:24%;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;background:rgba(178,58,42,.9);color:#fff8e6;font-size:clamp(28px,5vw,52px);letter-spacing:8px;padding:10px 34px;border-radius:40px;box-shadow:0 0 0 6px rgba(255,240,200,.35),0 8px 30px rgba(0,0,0,.4);white-space:nowrap;animation:sing 1.2s ease-in-out infinite alternate}
+@keyframes sing{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.08);box-shadow:0 0 0 14px rgba(255,240,200,.2),0 8px 30px rgba(0,0,0,.4)}}
 #vn.clear{background:transparent;pointer-events:none}
 #vn.clear #dlg{pointer-events:auto}
-#vn.clear .bg,#vn.clear #fxc,#vn.clear #sunset,#vn.clear #actor{display:none}
+#vn.clear .bg,#vn.clear #pic,#vn.clear #sunset,#vn.clear #actor{display:none}
+#readBtn{font:inherit;font-size:14px;padding:4px 10px;border-radius:14px;border:1px solid var(--line);background:#fffaf0;color:var(--ink);cursor:pointer}
+.tb .say{font:inherit;font-size:13px;margin-left:6px;padding:1px 8px;border-radius:10px;border:1px solid var(--line);background:#fffaf0;cursor:pointer;vertical-align:2px}
+#helpBtn{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;font:inherit;font-size:20px;padding:12px 26px;border-radius:28px;border:3px solid #fff3d6;background:#b23a2a;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer;animation:sing 1s ease-in-out infinite alternate}
+body.vn #helpBtn{display:none}
+#intro{position:fixed;inset:0;z-index:45;background:#1d2422;overflow:hidden;color:#f6ecd2}
+#intro .bg{transition:opacity 1.4s,transform 9s linear}
+#intro .bg.in{transform:scale(1.06)}
+#intro .ln{position:absolute;left:50%;transform:translateX(-50%);bottom:18%;width:min(900px,calc(100% - 40px));text-align:center;font-size:clamp(22px,3.6vw,38px);letter-spacing:4px;line-height:1.7;text-shadow:0 2px 12px rgba(0,0,0,.85),0 0 2px #000;opacity:0;transition:opacity 1s}
+#intro .ln.on{opacity:1}
+#intro .scroll{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:min(70vh,520px);width:0;max-width:calc(100% - 40px);background:linear-gradient(90deg,#e9dcb8,#f6ecd2 12%,#f6ecd2 88%,#e9dcb8);border-top:10px solid #6b3a22;border-bottom:10px solid #6b3a22;box-shadow:0 10px 40px rgba(0,0,0,.6);overflow:hidden;transition:width 2.2s ease-in-out,opacity 1s;display:flex;align-items:center;justify-content:center;gap:clamp(18px,4vw,50px);color:#2f2a24}
+#intro .scroll.open{width:min(760px,calc(100% - 40px))}
+#intro .scroll .v{writing-mode:vertical-rl;white-space:nowrap}
+#intro .scroll .big{font-size:clamp(56px,10vw,110px);letter-spacing:12px;font-weight:700}
+#intro .scroll .small{font-size:clamp(20px,3vw,30px);letter-spacing:6px;color:#5a4a3a}
+#intro .scroll .seal{writing-mode:vertical-rl;background:#b23a2a;color:#f6e3b4;padding:8px 6px;font-size:clamp(16px,2.2vw,22px);border-radius:3px}
+#intro .who{position:absolute;bottom:0;right:6%;height:min(78vh,620px);opacity:0;transform:translateX(40px);transition:opacity 1s,transform 1.2s;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))}
+#intro .who.on{opacity:1;transform:none}
+#intro .skip{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));font:inherit;font-size:16px;padding:8px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.35);color:#fff;cursor:pointer;z-index:2}
+#start .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#start .ghost{margin-top:10px;font:inherit;font-size:16px;padding:10px 20px;border-radius:6px;border:2px solid var(--seal);background:transparent;color:var(--seal);cursor:pointer}
+.longscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:2px solid #b9a77f;border-radius:4px;background:#e9dfc6}
+.longscroll img{display:block;height:min(42vh,320px);width:auto;max-width:none;-webkit-touch-callout:default;user-select:auto;-webkit-user-select:auto}
+.codebox{margin-top:12px;padding:10px 12px;background:#fff6dc;border:2px dashed var(--seal);border-radius:8px}
+.codebox input{font:inherit;font-size:18px;width:5em;padding:4px 6px;border:2px solid var(--line);border-radius:6px;user-select:text;-webkit-user-select:text}
+.codebox .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(17px,2.6vw,22px);letter-spacing:1px;word-break:break-all;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:8px 0;user-select:all;-webkit-user-select:all}
+.retry{border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
+.retry .opt{display:block;width:100%;margin:6px 0}
+#musBtn{pointer-events:auto;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+#musBtn.off{color:var(--muted);text-decoration:line-through}
 #pad{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:4px}
 #pad button{font:inherit;font-size:22px;border-radius:12px;border:2px solid var(--line);background:rgba(250,244,230,.88);color:var(--ink);touch-action:none;-webkit-user-select:none;user-select:none}
 #pad button:active{background:var(--seal);color:#fff}
@@ -132,13 +170,15 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 #wordbar{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:4;background:rgba(250,244,230,.94);border:2px solid var(--line);border-radius:18px;padding:5px 16px;font-size:18px;white-space:nowrap}
 #wordbar span{display:inline-block;min-width:1.4em;text-align:center;margin:0 2px;border-bottom:2px solid var(--line);font-weight:700;color:var(--muted)}#wordbar span.got{color:var(--seal)}
 body.vn #wordbar{display:none}
-#compass{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:92px;z-index:4;pointer-events:none;text-align:center}
+#compass{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(58px + env(safe-area-inset-top,0px));width:92px;z-index:12;pointer-events:none;text-align:center}
+body.vnfull #compass{display:none}
 #compass svg{width:92px;height:92px;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 #compass .cap{font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1px 4px;margin-top:2px}
 @media (max-width:600px){#compass,#compass svg{width:72px}#compass svg{height:72px}}
 #start{z-index:40}
 @media (max-width:700px){#txt{font-size:18px}#actor{height:46vh}#dlg{max-height:60vh}}
-@media (prefers-reduced-motion:reduce){.bg{animation:none}}
+@media (prefers-reduced-motion:reduce){#songBanner{animation:none}}
+.label.big{font-size:20px;padding:4px 14px;background:#b23a2a;color:#fff;border-color:#7a2218}
 </style>
 
 
@@ -147,6 +187,8 @@ body.vn #wordbar{display:none}
   <div class="chip title">跟著老殘遊明湖</div>
   <div class="chip" id="main" hidden>主線：《明湖長卷》 <b id="cards">0</b>/8 <span id="scrollbar" class="sb"></span></div>
   <div class="chip" id="hint">下一站：鵲華橋</div>
+  <div class="chip" id="modeChip" hidden style="background:#b23a2a;color:#fff;border-color:#7a2218">🔥 挑戰模式</div>
+  <button class="chip" id="musBtn" type="button" aria-label="配樂開關">♪ 配樂</button>
 </div>
 <div id="labels"></div>
 <div id="wordbar" hidden></div>
@@ -163,11 +205,12 @@ body.vn #wordbar{display:none}
 </svg><div class="cap"><span style="color:#e0782a">▲</span>你面向的方向</div></div>
 <div id="vn" hidden>
   <div id="bgA" class="bg"></div><div id="bgB" class="bg"></div>
-  <canvas id="fxc" hidden></canvas><div id="sunset"></div><div id="fx"></div>
+  <div id="pic"><canvas id="fxc" hidden></canvas><canvas id="ov" hidden></canvas><div id="tags"></div></div><div id="sunset"></div><div id="fx"></div>
+  <div id="cap" hidden></div><div id="songBanner" hidden>♪ 一聲漁唱 ♪</div>
   <div id="actor"></div>
   <div id="field" hidden></div>
   <div id="dlg">
-    <div class="dhead"><div id="face" hidden></div><div id="who"></div><button id="textBtn" type="button">📜 課文</button></div>
+    <div class="dhead"><div id="face" hidden></div><div id="who"></div><button id="readBtn" type="button" aria-label="朗讀這一句">🔊 朗讀</button><button id="textBtn" type="button">📜 課文</button></div>
     <div id="txt"></div><div id="quote"></div><div id="choices"></div><div id="more">點一下繼續 ▶</div>
   </div>
 </div>
@@ -200,22 +243,25 @@ body.vn #wordbar{display:none}
 </div></div>
 <div id="end" hidden></div>
 <div id="toast"></div>
+<button id="helpBtn" type="button" hidden>🚣 迷路了？請船家帶路</button>
+<div id="intro" hidden></div>
 <div id="start"><div class="card">
   <h1>跟著老殘遊明湖</h1>
-  <p>你是老殘的小藥童。<br>幫鵲華橋邊的老畫師，把大明湖的景色一處一處帶回來，完成《明湖長卷》。</p><p>點地面走路、點湖面坐船，也可以用<b>鍵盤方向鍵</b>或右下角的方向按鈕。跟著<b style="color:#b23a2a">紅色箭頭</b>和左下角的羅盤找下一站。到了景點，讀課文、回答老殘的問題。</p>
-  <p style="font-size:13px">建議打開聲音 🔊</p>
-  <button id="go">出發</button>
+  <p>你是老殘的小藥童。<br>幫鵲華橋邊的老畫師，把大明湖的景色一處一處帶回來，完成《明湖長卷》。</p><p>點地面走路、點湖面坐船，也可以用<b>鍵盤方向鍵</b>或右下角的方向按鈕。跟著<b style="color:#b23a2a">紅色箭頭</b>和左上角的羅盤找下一站。到了景點，讀課文、回答老殘的問題。</p>
+  <p style="font-size:13px">有配樂和漁歌，建議戴耳機或打開聲音 🔊（右上角可以關配樂）</p>
+  <div class="row"><button id="go">出發</button><button id="resume" class="ghost" type="button" hidden></button></div>
 </div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
+<script src="qbank.js"></script>
 <script>
 (function(){
 const T = THREE;
 // ---------- 基本設定 ----------
 const canvas = document.getElementById('c');
 const renderer = new T.WebGLRenderer({canvas, antialias:true});
-const DPR = Math.min(window.devicePixelRatio||1, 1.6);
+let DPR = Math.min(window.devicePixelRatio||1, 2);
 renderer.setPixelRatio(DPR);
 renderer.shadowMap.enabled = false;
 renderer.shadowMap.type = T.PCFSoftShadowMap;
@@ -321,26 +367,38 @@ const bridge = new T.Group(); bridge.position.set(-30,0,-38.5); bridge.rotation.
 // 出水的小河
 const stream=new T.Mesh(new T.PlaneGeometry(9,40).rotateX(-Math.PI/2),lam('#9fb9ae')); stream.position.set(-40,0.31,-55); stream.rotation.y=0.55; scene.add(stream);
 
-// ---------- 千佛山（南方遠山） ----------
-const peaks=[[-210,-175,48,55],[-120,-170,62,45],[-45,-152,74,40],[25,-168,66,44],[100,-150,52,38],[175,-172,60,50],[60,-128,30,26],[-80,-128,30,26],[240,-160,45,50]];
-function mh(x,z){ let h=0; for(const p of peaks){ const dx=x-p[0],dz=z-p[1]; h+=p[2]*Math.exp(-(dx*dx+dz*dz)/(p[3]*p[3])); }
-  h+=3*Math.sin(x*.13)*Math.sin(z*.17)+2*Math.sin(x*.31+z*.2); const f=Math.min(1,Math.max(0,(-z-92)/22)); return Math.max(0,h*f); }
-{ const g=new T.PlaneGeometry(620,170,124,40); g.rotateX(-Math.PI/2); g.translate(0,0,-180);
-  const pos=g.attributes.position, col=[]; const cTop=new T.Color('#2e5f7a'), cMid=new T.Color('#3f8a68'), cLow=new T.Color('#b59a62'), c=new T.Color();
-  for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i), h=mh(x,z); pos.setY(i,h+0.2);
-    const t=Math.min(1,h/60); if(t<.5) c.copy(cLow).lerp(cMid,t*2); else c.copy(cMid).lerp(cTop,(t-.5)*2); c.offsetHSL(0,0,(rnd()-.5)*.05); col.push(c.r,c.g,c.b); }
-  g.setAttribute('color',new T.Float32BufferAttribute(col,3)); g.computeVertexNormals();
-  const m=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:1})); scene.add(m);
-  const m2=m.clone(); m2.rotation.y=Math.PI; m2.scale.y=0.5; scene.add(m2); /* 北方的遠山，鏡頭朝北時看得到 */ }
-// 山上的寺廟、松柏、楓樹
-function spots(n,minH){ const r=[]; let tries=0; while(r.length<n && tries<5000){ tries++; const x=(rnd()-.5)*460, z=-100-rnd()*110, h=mh(x,z); if(h>minH) r.push([x,h,z]); } return r; }
-function inst(geo,mat,list,sc,cast){ const im=new T.InstancedMesh(geo,mat,list.length); const o=new T.Object3D();
-  list.forEach((p,i)=>{ o.position.set(p[0],p[1],p[2]); const s=sc*(0.8+rnd()*0.5); o.scale.set(s,s,s); o.rotation.y=rnd()*6; o.updateMatrix(); im.setMatrixAt(i,o.matrix); }); if(cast) im.castShadow=true; scene.add(im); return im; }
-{ const pg=new T.ConeGeometry(1.4,5,6); pg.translate(0,2.5,0); inst(pg,lam('#2c5a46'),spots(260,6),1,false);
-  const mg=new T.IcosahedronGeometry(2,0); mg.translate(0,2,0); inst(mg,lam('#c0402a'),spots(70,8),1,false); inst(mg,lam('#d98a3a'),spots(25,8),0.9,false);
-  const tw=new T.BoxGeometry(5,3,4); tw.translate(0,1.5,0); const tr=new T.ConeGeometry(4,2.2,4); tr.rotateY(Math.PI/4); tr.translate(0,4,0);
-  const ts=spots(26,14); inst(tw,lam('#f2efe6'),ts,1,false); inst(tr,lam('#2a4652'),ts,1,false);
-  const rw=new T.BoxGeometry(4,2.6,3.4); rw.translate(0,1.3,0); const rs=spots(18,10); inst(rw,lam('#b8402c'),rs,1,false); inst(tr,lam('#2a4652'),rs,0.9,false); }
+// ---------- 千佛山（南方遠山）：像青綠山水畫一樣，一層一層的山 ----------
+function inst(geo,mat,list,sc,cast,parent){ const im=new T.InstancedMesh(geo,mat,list.length); const o=new T.Object3D();
+  list.forEach((p,i)=>{ o.position.set(p[0],p[1],p[2]); const s=sc*(0.8+rnd()*0.5); o.scale.set(s,s,s); o.rotation.y=rnd()*6; o.updateMatrix(); im.setMatrixAt(i,o.matrix); }); if(cast) im.castShadow=true; (parent||scene).add(im); return im; }
+// 一道山稜：上緣是起伏的山形，顏色由山頂（深青綠）漸變到山腳（淡赭、霧白）
+function ridge(z,w,base,amp,pk,cTop,cBot,ph){ const N=200, top=[];
+  for(let i=0;i<=N;i++){ const u=i/N, x=-w/2+u*w; let h=base+amp*(0.55*Math.sin(u*8.3+ph)+0.3*Math.sin(u*21.7+ph*2.1)+0.15*Math.sin(u*57+ph*3.3));
+    for(const [px,ph2,pw] of pk){ const d=(x-px)/pw; h+=ph2*Math.exp(-d*d); } top.push([x,Math.max(1.5,h)]); }
+  const pos=[], col=[], idx=[]; const ct=new T.Color(cTop), cb=new T.Color(cBot), c=new T.Color();
+  top.forEach(([x,h],i)=>{ const n=(Math.sin(x*0.21)+Math.sin(x*0.067+1))*0.04;
+    [[1,0],[0.55,0.45],[0,1]].forEach(([f,t])=>{ pos.push(x,h*f-1,0); c.copy(ct).lerp(cb,Math.pow(t,0.8)); c.offsetHSL(0,0,n*(1-t)); col.push(c.r,c.g,c.b); });
+    if(i){ const a=(i-1)*3, b=i*3; idx.push(a,a+1,b, b,a+1,b+1, a+1,a+2,b+1, b+1,a+2,b+2); } });
+  const g=new T.BufferGeometry(); g.setAttribute('position',new T.Float32BufferAttribute(pos,3)); g.setAttribute('color',new T.Float32BufferAttribute(col,3)); g.setIndex(idx);
+  const m=new T.Mesh(g,new T.MeshBasicMaterial({vertexColors:true,side:T.DoubleSide})); m.position.z=z; scene.add(m);
+  return x=>{ const u=Math.max(0,Math.min(N-1e-6,(x+w/2)/w*N)), i=Math.floor(u), f=u-i; return top[i][1]*(1-f)+top[i+1][1]*f; }; }
+ridge(-330,1100,62,16,[[-90,40,90],[180,30,80]],'#9db3bf','#e6e1cf',1.3);
+ridge(-255,860,44,12,[[-150,26,55],[60,34,60],[270,22,55]],'#5d86a0','#d3d6c6',2.2);
+const qfH=ridge(-185,660,20,7,[[-20,40,60],[-120,22,42],[105,25,48],[220,14,40]],'#2c5d55','#a9b38c',0.4);   // 千佛山（主峰）
+const frontH=ridge(-140,560,6,4,[[-170,9,40],[60,7,55],[210,11,45]],'#4a7a50','#bfae74',3.1);
+ridge(255,900,22,8,[[0,14,90]],'#8aa3a8','#e3dcc6',0.9);   // 北方遠山（朝北時看得到）
+// 千佛山上的梵宇僧樓、蒼松翠柏、丹楓（貼在山的正面）
+{ const onQF=(n,lo,hi)=>{ const r=[]; for(let i=0;i<n;i++){ const x=(rnd()-.5)*560, h=qfH(x); r.push([x,h*(lo+rnd()*(hi-lo)),-183.5]); } return r; };
+  const pg=new T.ConeGeometry(1.5,6,6); pg.translate(0,3,0); inst(pg,lam('#1f4a3c'),onQF(150,0.15,0.9),1,false);
+  inst(pg,lam('#3d7a4a'),onQF(70,0.1,0.75),0.8,false);
+  const mg=new T.IcosahedronGeometry(2.2,0); mg.translate(0,2,0); inst(mg,lam('#c8372a'),onQF(42,0.2,0.85),1,false); inst(mg,lam('#e07a2e'),onQF(14,0.2,0.8),0.9,false);
+  const tw=new T.BoxGeometry(6,3.4,2); tw.translate(0,1.7,0); const tr=new T.ConeGeometry(4.6,2.4,4); tr.rotateY(Math.PI/4); tr.scale(1,1,0.5); tr.translate(0,4.4,0);
+  const TS=[[-30,0.62],[-5,0.8],[25,0.55],[-75,0.5],[70,0.6],[130,0.45],[-140,0.4],[0,0.4]].map(([x,f])=>[x,qfH(x)*f,-182.5]);
+  inst(tw,lam('#f4f0e6'),TS.filter((_,i)=>i%3),1,false); inst(tw,lam('#b8402c'),TS.filter((_,i)=>!(i%3)),1,false); inst(tr,lam('#2a3e48'),TS,1,false);
+  const fp=[]; for(let i=0;i<55;i++){ const x=(rnd()-.5)*520; fp.push([x,frontH(x)*(0.2+rnd()*0.7),-138.5]); }
+  const rg=new T.IcosahedronGeometry(2.4,0); rg.translate(0,2,0); inst(rg,lam('#5b8a5a'),fp.filter((_,i)=>i%3),1,false); inst(rg,lam('#c0582e'),fp.filter((_,i)=>!(i%3)),0.9,false); }
+// 山間的雲霧
+{ const ct=(()=>{ const c=document.createElement('canvas'); c.width=256; c.height=64; const x=c.getContext('2d'); const g=x.createRadialGradient(128,32,4,128,32,120); g.addColorStop(0,'rgba(255,252,240,.9)'); g.addColorStop(1,'rgba(255,252,240,0)'); x.fillStyle=g; x.fillRect(0,0,256,64); return new T.CanvasTexture(c); })();
+  [[-160,-205,18],[40,-210,24],[200,-200,16],[-60,-160,9],[150,-160,8]].forEach(([x,z,y])=>{ const s=new T.Sprite(new T.SpriteMaterial({map:ct,transparent:true,opacity:.75,depthWrite:false})); s.scale.set(160,22,1); s.position.set(x,y,z); scene.add(s); }); }
 
 // ---------- 湖邊的柳樹、樹、蘆葦、荷葉 ----------
 { const W=[]; for(let i=0;i<70;i++){ const a=rnd()*Math.PI*2, k=1.12+rnd()*0.22, x=Math.cos(a)*RX*k, z=Math.sin(a)*RZ*k;
@@ -361,13 +419,23 @@ const reedTipMat = new T.MeshLambertMaterial({color:'#f6f2e8'});
 { const R=[]; for(let x=-24;x<55;x+=0.55){ const ez=-RZ*Math.sqrt(Math.max(0,1-(x*x)/(RX*RX))); for(let k=0;k<2;k++) R.push([x+(rnd()-.5)*.5,0.1,ez-0.6-rnd()*2.6]); }
   const sg=new T.CylinderGeometry(0.04,0.06,2.6,4); sg.translate(0,1.3,0); inst(sg,lam('#b8a36a'),R,1,false);
   const tg=new T.SphereGeometry(0.22,6,5); tg.scale(1,2.4,1); tg.translate(0,2.8,0); inst(tg,reedTipMat,R,1,false); }
+// 荷花：一朵花＝莖＋兩層花瓣＋黃色花心
+function lotusFlowers(parent,list,sc){ if(!list.length) return;
+  const stem=new T.CylinderGeometry(0.06,0.07,1.6,5); stem.translate(0,0.8,0);
+  const inner=new T.LatheGeometry([new T.Vector2(0,0),new T.Vector2(0.22,0.05),new T.Vector2(0.42,0.32),new T.Vector2(0.48,0.66),new T.Vector2(0.34,0.92)],6); inner.translate(0,1.55,0);
+  const outer=new T.LatheGeometry([new T.Vector2(0,0),new T.Vector2(0.35,0.06),new T.Vector2(0.72,0.3),new T.Vector2(0.9,0.56)],6); outer.rotateY(Math.PI/6); outer.translate(0,1.5,0);
+  const heart=new T.SphereGeometry(0.16,8,6); heart.translate(0,1.72,0);
+  const pink=new T.MeshLambertMaterial({color:'#ee93b0',side:T.DoubleSide}), pale=new T.MeshLambertMaterial({color:'#f8dbe4',side:T.DoubleSide});
+  const A=list.filter((_,i)=>i%3), B=list.filter((_,i)=>!(i%3));
+  inst(stem,lam('#5f8a4a'),list,sc,false,parent); inst(inner,pink,A,sc,false,parent); inst(outer,pale,A,sc,false,parent);
+  inst(inner,pale,B,sc,false,parent); inst(outer,pink,B,sc,false,parent); inst(heart,lam('#e8c84a'),list,sc,false,parent); }
 // 荷葉、荷花（歷下亭後面最多）
 { const L=[], F=[]; for(let i=0;i<260;i++){ const a=rnd()*Math.PI*2, d=ISL.r+1+rnd()*14, x=ISL.x+Math.cos(a)*d*1.3, z=ISL.z+Math.abs(Math.sin(a))*d+2;
     if(!isWater(x,z)) continue; (rnd()<.12?F:L).push([x,0.06,z]); }
   const lg=new T.CircleGeometry(1,9); lg.rotateX(-Math.PI/2); const im=inst(lg,lam('#4c7a5c'),L,1,false);
   const lg2=new T.CircleGeometry(1,9); lg2.rotateX(-Math.PI/2); const D=[]; for(let i=0;i<60;i++){ const a=rnd()*Math.PI*2, d=ISL.r+1+rnd()*14, x=ISL.x+Math.cos(a)*d*1.3, z=ISL.z+Math.abs(Math.sin(a))*d+2; if(isWater(x,z)) D.push([x,0.075,z]); } inst(lg2,lam('#b5a35a'),D,0.9,false); // 初枯的荷葉
-  const fg=new T.ConeGeometry(0.45,0.8,6); fg.rotateX(Math.PI); fg.translate(0,0.7,0); inst(fg,lam('#e9a6b6'),F,1,false);
-  const pg=new T.CylinderGeometry(0.35,0.2,0.4,8); pg.translate(0,1.0,0); inst(pg,lam('#8a9a4a'),F,1,false); }
+  lotusFlowers(scene,F,0.75);
+  const pg=new T.CylinderGeometry(0.35,0.2,0.4,8); pg.translate(0,1.0,0); inst(pg,lam('#8a9a4a'),D.filter((_,i)=>i%3===0),1,false); }
 
 // ---------- 人物（簡單的小人） ----------
 function figure(robe,small){ const g=new T.Group(); const s=small?0.82:1;
@@ -378,7 +446,15 @@ function figure(robe,small){ const g=new T.Group(); const s=small?0.82:1;
   g.userData={body,legL,legR,head,hat};
   g.scale.setScalar(1.7); return g; }
 const lao = figure('#4f6a86',false); scene.add(lao);
-{ const bell=new T.Mesh(new T.TorusGeometry(0.16,0.06,6,12),lam('#c9a24a')); bell.position.set(0.55,1.25,0.2); lao.add(bell); }
+{ const bell=new T.Mesh(new T.TorusGeometry(0.16,0.06,6,12),lam('#c9a24a')); bell.position.set(0.55,1.25,0.2); lao.add(bell);
+  // 會抬起來指向遠方的手臂
+  const sh=new T.Group(); sh.position.set(-0.3,1.5,0.05); const arm=new T.Mesh(new T.CylinderGeometry(0.1,0.085,0.95,6),lam('#4f6a86')); arm.position.y=-0.45; sh.add(arm);
+  const hand=new T.Mesh(new T.SphereGeometry(0.12,8,6),lam('#f0d2b0')); hand.position.y=-0.95; sh.add(hand); sh.rotation.z=-0.2; lao.add(sh); lao.userData.arm=sh; }
+// 轉身時腳邊的旋轉箭頭
+const turnRing=new T.Group(); turnRing.visible=false; scene.add(turnRing);
+{ const m=new T.MeshBasicMaterial({color:'#e0782a',transparent:true,opacity:.9,depthWrite:false});
+  const arc=new T.Mesh(new T.TorusGeometry(4.2,0.28,6,48,Math.PI*1.4),m); arc.rotation.x=-Math.PI/2; turnRing.add(arc);
+  const head=new T.Mesh(new T.ConeGeometry(0.75,1.6,10),m); const a=Math.PI*1.4; head.position.set(Math.cos(a)*4.2,0,-Math.sin(a)*4.2); head.rotation.set(0,a-Math.PI/2,Math.PI/2); turnRing.add(head); }
 const kid = figure('#8fb8d6',true); scene.add(kid);
 { const chest=new T.Mesh(new T.BoxGeometry(0.6,0.6,0.35),lam('#8a5a34')); chest.position.set(0,1.15,-0.42); chest.castShadow=true; kid.add(chest);
   const braid=new T.Mesh(new T.CylinderGeometry(0.06,0.04,0.8,5),lam('#111')); braid.position.set(0,1.5,-0.3); braid.rotation.x=0.3; kid.add(braid);
@@ -423,16 +499,7 @@ function tryMove(nx,nz){ if(mode==='inner'){ let ok=false; if(!innerBlocked(nx,P
 function setTarget(x,z){ x=Math.max(-BOUND.x,Math.min(BOUND.x,x)); z=Math.max(BOUND.zMin,Math.min(BOUND.zMax,z)); target=new T.Vector3(x,0.3,z); }
 
 // ---------- 課文（原文，已無版權） ----------
-const PASSAGE=[
-'老殘告辭動身上車，一路秋山紅葉，老圃黃花，頗不寂寞。到了濟南府，進得城來，家家泉水，戶戶垂楊，比那江南風景覺得更為有趣。',
-'到了小布政司街，覓了一家客店，名叫高陞店，將行李卸下，開發了車價酒錢，胡亂吃點晚飯，也就睡了。',
-'次日清晨起來，吃點兒點心，便搖著串鈴滿街踅了一趟，虛應一應故事。午後便步行至鵲華橋邊，雇了一隻小船，盪起雙槳。朝北不遠，便到歷下亭前，止船進去。入了大門，便是一個亭子，油漆已大半剝蝕。亭子上懸了一副對聯，寫的是「歷下此亭古，濟南名士多」，上寫著「杜工部句」，下寫著「道州何紹基書」。亭子旁邊雖有幾間房屋，也沒有什麼意思。',
-'復行下船，向西盪去，不甚遠，又到了鐵公祠畔。你道鐵公是誰？就是明初與燕王為難的那位鐵鉉。後人敬他的忠義，所以至今春秋時節，土人尚不斷的來此進香。到了鐵公祠前，朝南一望，只見對面千佛山上，梵宇僧樓，與那蒼松翠柏，高下相間，紅的火紅，白的雪白，青的靛青，綠的碧綠。更有一株半株的丹楓夾在裡面，彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風。',
-'正在嘆賞不絕，忽聽一聲漁唱，低頭看去，誰知那明湖業已澄淨得同鏡子一般。那千佛山的倒影映在湖裡，顯得明明白白。那樓臺樹木格外光彩，覺得比上頭的一個千佛山還要好看，還要清楚。',
-'這湖的南岸，上去便是街市，卻有一層蘆葦，密密遮住。現在正是開花的時候，一片白花映著帶水氣的斜陽，好似一條粉紅絨毯，做了上下兩個山的墊子，實在奇絕！',
-'老殘心裡想道：「如此佳景，為何沒有什麼遊人？」看了一會兒，回轉身來，看那大門裡面楹柱上有副對聯，寫的是「四面荷花三面柳，一城山色半城湖」，暗暗點頭道：「真正不錯！」進了大門，正面便是鐵公享堂，朝東便是一個荷池。繞著曲折的迴廊，到了荷池東面，就是個圓門。圓門東邊有三間舊房，有個破匾，上題「古水仙祠」四個字。祠前一副破舊對聯，寫的是「一盞寒泉薦秋菊，三更畫舫穿藕花」。',
-'過了水仙祠，仍舊下了船，盪到歷下亭的後面。兩邊荷葉荷花將船夾住。那荷葉初枯，擦得船嗤嗤價響。那水鳥被人驚起，格格價飛。那已老的蓮蓬不斷的蹦到船窗裡面來。',
-'老殘隨手摘了幾個蓮蓬，一面吃著，一面船已到了鵲華橋畔了。'];
+const PASSAGE=MH.PASSAGE;
 const NUM='一二三四五六七八九';
 function paraOf(s){ return PASSAGE.findIndex(p=>p.includes(s)); }
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -442,68 +509,11 @@ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[
 const BG={jinan:'img/jinan.jpg',que:'img/que.jpg',lixia:'img/lixia.jpg',tie:'img/tie.jpg',qianfo:'img/qianfo.jpg',reed:'img/reed.jpg',shui:'img/shui.jpg',lotus:'img/lotus.jpg'};
 const PPL={'老殘':'ppl/lao.png','小藥童':'ppl/kid.png','船家':'ppl/boat.png','老婆婆':'ppl/granny.png','老畫師':'ppl/painter.png'};
 const IMG={}; Object.entries(BG).forEach(([k,u])=>{ const i=new Image(); i.src=u; IMG[k]=i; }); Object.values(PPL).forEach(u=>{ new Image().src=u; });
-function pixels(key){ const im=IMG[key], W=960, H=540; const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d'); x.drawImage(im,0,0,W,H); return {W,H,img:x.getImageData(0,0,W,H)}; }
+function pixels(key){ const im=IMG[key], W=im.naturalWidth||1600, H=im.naturalHeight||900; const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d'); x.drawImage(im,0,0,W,H); return {W,H,img:x.getImageData(0,0,W,H)}; }
 function hsl(r,g,b){ const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/510, d=mx-mn; if(!d) return [0,0,l]; const s=d/(l>.5?510-mx-mn:mx+mn); let hh; if(mx===r) hh=((g-b)/d+6)%6; else if(mx===g) hh=(b-r)/d+2; else hh=(r-g)/d+4; return [hh*60,s,l]; }
 
 // ---------- 題庫（每站隨機抽題，選項順序也打亂；o[0] 是正解） ----------
-const Q={
- pro:[
-  {q:'「開發了車價酒錢」的「開發」是什麼意思？',o:['支付','開墾土地','發明','出發'],hl:'開發了車價酒錢',why:'「開發」在這裡是支付，付了車錢和小費。'},
-  {q:'「酒錢」在這裡指的是什麼？',o:['小費','買酒的錢','旅館錢','藥錢'],hl:'開發了車價酒錢',why:'酒錢就是給車夫的小費。'},
-  {q:'老殘覺得濟南比江南風景更有趣，是因為看到什麼？',o:['家家泉水，戶戶垂楊','梵宇僧樓','四面荷花','秋山紅葉'],hl:'家家泉水，戶戶垂楊',why:'一進城就看到家家有泉水、戶戶有垂柳。'},
-  {q:'「虛應一應故事」是什麼意思？',o:['隨便應付一下例行的事','說了一個虛構的故事','認真幫人看病','說書給大家聽'],hl:'虛應一應故事',why:'老殘搖串鈴走一趟，只是隨便應付一下行醫的例行工作。'},
-  {q:'老殘搖著串鈴滿街走，是在做什麼？',o:['以江湖郎中的身分招攬病人','叫賣糖果','寺廟敲鐘','趕走鳥群'],hl:'搖著串鈴滿街踅了一趟',why:'串鈴是江湖郎中、算命先生招攬客人的器具。'}],
- que:[
-  {q:'從鵲華橋到歷下亭，要往哪個方向划？',o:['北','南','東','西'],hl:'朝北不遠，便到歷下亭前',why:'課文說「朝北不遠，便到歷下亭前」。'},
-  {q:'老殘是怎麼到鵲華橋的？',o:['走路','坐馬車','騎馬','坐轎子'],hl:'午後便步行至鵲華橋邊',why:'「步行至鵲華橋邊」，是走路去的。'}],
- lixia:[
-  {q:'從「歷下此亭古，濟南名士多」可以知道濟南有什麼特色？',o:['歷史悠久，人才很多','物產豐富','山高水深','商業發達'],hl:'歷下此亭古，濟南名士多',why:'「此亭古」說歷史悠久，「名士多」說人才多。'},
-  {q:'「油漆已大半剝蝕」的「剝蝕」是什麼意思？',o:['脫落損壞','剛剛漆好','顏色鮮豔','被雨淋濕'],hl:'油漆已大半剝蝕',why:'剝蝕是脫落損壞，表示亭子很古老。'},
-  {q:'對聯旁寫著「杜工部句」，句子是誰寫的？',o:['杜甫','何紹基','劉鶚','李白'],hl:'上寫著「杜工部句」',why:'杜工部就是唐朝詩人杜甫。'},
-  {q:'對聯上的字是誰寫的？',o:['何紹基','杜甫','老殘','鐵鉉'],hl:'下寫著「道州何紹基書」',why:'「何紹基書」的「書」是書寫，何紹基是書法家。'}],
- tieA:[
-  {q:'濟南人為什麼到現在還來鐵公祠進香？',o:['敬佩鐵鉉的忠義','求財','求考試順利','祠堂很漂亮'],hl:'後人敬他的忠義',why:'後人敬他的忠義，所以春秋時節都來進香。'},
-  {q:'「土人尚不斷的來此進香」的「土人」是指誰？',o:['當地人','野蠻人','種田的人','外地遊客'],hl:'土人尚不斷的來此進香',why:'土人是土生土長的當地人。'},
-  {q:'「你道鐵公是誰？」後面馬上自己回答，這是什麼寫法？',o:['設問：自問自答，引起注意','激問：答案在問題反面','感嘆','譬喻'],hl:'你道鐵公是誰',why:'先提問、再自己回答，是設問（提問）。'}],
- tieM:[
-  {q:'「梵宇僧樓」是指什麼？',o:['佛寺和和尚住的地方','皇宮','書院','客棧'],hl:'梵宇僧樓',why:'梵宇是佛寺，僧樓是和尚住的地方。'},
-  {q:'「高下相間」是什麼意思？',o:['高高低低，互相夾雜','越來越高','中間有空隙','上下顛倒'],hl:'高下相間',why:'寺廟和松柏高高低低地夾雜在一起。'},
-  {q:'「紅的火紅，白的雪白，青的靛青，綠的碧綠」四句句型相同、接連出現，是哪種修辭？',o:['排比','對偶','頂真','倒反'],hl:'紅的火紅，白的雪白，青的靛青，綠的碧綠',why:'三句以上句型相同接連出現，是排比；寫的都是顏色，也是視覺摹寫。'},
-  {q:'「彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風」用了什麼修辭？',o:['譬喻','頂真','設問','對偶'],hl:'彷彿宋人趙千里的一幅大畫',why:'用「彷彿」把千佛山比作大畫、屏風，是譬喻。'},
-  {q:'老殘是怎麼觀察千佛山的？',o:['站在鐵公祠前，定點往南望','一邊爬山一邊看','坐船繞著山看','在山頂往下看'],hl:'到了鐵公祠前，朝南一望',why:'他站在鐵公祠前朝南看，是定點觀察。'}],
- tieW:[
-  {q:'老殘覺得倒影比真的山還好看，最主要的原因是？',o:['湖水澄淨得像鏡子','太陽太大看不清山','山上起霧','老殘眼睛不好'],hl:'澄淨得同鏡子一般',why:'湖水澄淨如鏡，倒影才「明明白白」。'},
-  {q:'「誰知那明湖業已澄淨」的「業已」是什麼意思？',o:['已經','事業','業務','停止'],hl:'業已澄淨',why:'業已就是已經。'},
-  {q:'「澄淨得同鏡子一般」用了什麼修辭？',o:['譬喻','轉化','誇飾','設問'],hl:'澄淨得同鏡子一般',why:'把湖水比作鏡子，是譬喻。'}],
- tieR:[
-  {q:'「做了上下兩個山的墊子」，上下兩個山是指什麼？',o:['真的千佛山和湖中的倒影','千佛山和泰山','兩座小山丘','歷下亭和鐵公祠'],hl:'上下兩個山的墊子',why:'蘆葦帶夾在真山和倒影中間，像兩座山共用的墊子。'},
-  {q:'南岸的蘆葦後面，上去是什麼地方？',o:['街市','寺廟','千佛山','荷池'],hl:'上去便是街市',why:'「這湖的南岸，上去便是街市」。'},
-  {q:'「好似一條粉紅絨毯」用了什麼修辭？',o:['譬喻','類疊','排比','對偶'],hl:'好似一條粉紅絨毯',why:'用「好似」把蘆花比作絨毯，是譬喻。'}],
- shui:[
-  {q:'「四面荷花三面柳，一城山色半城湖」寫出濟南的什麼？',o:['被山和湖環繞，風景優美','人很多，很熱鬧','寺廟很多','物產豐富'],hl:'一城山色半城湖',why:'荷花、柳樹、山色、湖光，寫濟南山水之美。'},
-  {q:'「一盞寒泉薦秋菊」的「薦」是什麼意思？',o:['進獻、供奉','推薦','吃','種植'],hl:'一盞寒泉薦秋菊',why:'用一盞清泉供奉秋菊，薦是進獻。'},
-  {q:'「三更畫舫穿藕花」的「畫舫」是什麼？',o:['裝飾華美的遊船','畫家的房子','畫在船上的圖','漁船'],hl:'三更畫舫穿藕花',why:'畫舫是裝飾華美的遊船。'},
-  {q:'「如此佳景，為何沒有什麼遊人？」老殘的心情比較接近？',o:['覺得可惜','很高興沒人打擾','生氣','害怕'],hl:'如此佳景，為何沒有什麼遊人',why:'這麼美的地方卻沒人欣賞，老殘覺得可惜。'}],
- he:[
-  {q:'「擦得船嗤嗤價響」的「價」是什麼意思？',o:['「的」、「地」','價錢','很貴','價值'],hl:'嗤嗤價響',why:'價是江浙方言的語尾，相當於「的」、「地」。'},
-  {q:'從「荷葉初枯」「已老的蓮蓬」可以知道當時是什麼季節？',o:['秋天','春天','夏天','冬天'],hl:'那荷葉初枯',why:'荷葉開始枯、蓮蓬成熟，是秋天。'},
-  {q:'前面寫倒影很安靜，這裡寫水鳥驚飛、蓮蓬亂蹦，這是什麼寫法？',o:['動靜對比','古今對比','遠近對比','虛實對比'],hl:'那水鳥被人驚起',why:'安靜的倒影對比熱鬧的荷花叢，是動靜對比。'}],
- gate:[
-  {q:'「四面荷花三面柳，一城山色半城湖」寫出濟南的什麼？',o:['被山和湖環繞，風景優美','人很多，很熱鬧','寺廟很多','物產豐富'],hl:'一城山色半城湖',why:'荷花、柳樹、山色、湖光，寫濟南山水之美。'},
-  {q:'這副對聯掛在哪裡？',o:['鐵公祠大門裡面的楹柱','歷下亭的亭子上','古水仙祠前','鵲華橋邊'],hl:'看那大門裡面楹柱上有副對聯',why:'老殘回轉身來，看到大門裡面楹柱上的對聯。'}],
- hall:[
-  {q:'進了大門，正面的「享堂」是做什麼的？',o:['供奉和祭祀鐵公的廳堂','吃飯的地方','客人住宿的房間','賣香的店'],hl:'正面便是鐵公享堂',why:'享堂是供奉和祭祀的廳堂，這裡祭祀的是鐵公（鐵鉉）。'}],
- east:[
-  {q:'「朝東便是一個荷池」，荷池在享堂前的哪一邊？（看左下角的羅盤）',o:['東邊（畫面右邊）','西邊（畫面左邊）','北邊（畫面上面）','南邊（畫面下面）'],hl:'朝東便是一個荷池',why:'羅盤上「東」在右邊，往右走就是荷池。'}],
- corr:[
-  {q:'老殘是怎麼走到荷池東面的？',o:['繞著曲折的迴廊','坐船划過去','從享堂裡穿過去','翻過圍牆'],hl:'繞著曲折的迴廊，到了荷池東面',why:'「繞著曲折的迴廊，到了荷池東面，就是個圓門。」'},
-  {q:'「曲折的迴廊」是什麼樣子？',o:['彎彎曲曲、有屋頂的走廊','一條筆直的大路','一座石橋','一條小河'],hl:'繞著曲折的迴廊',why:'迴廊是有屋頂的走廊，曲折就是彎彎曲曲。'}],
- shuiB:[
-  {q:'圓門東邊三間舊房的破匾上，寫的是什麼？',o:['古水仙祠','鐵公享堂','歷下亭','明湖居'],hl:'上題「古水仙祠」四個字',why:'破匾上題著「古水仙祠」，是供奉水神的古廟。'}],
- fin:[
-  {q:'下列哪一句是「聽覺」描寫？',o:['擦得船嗤嗤價響','紅的火紅，白的雪白','好似一條粉紅絨毯','家家泉水，戶戶垂楊'],hl:'擦得船嗤嗤價響',why:'嗤嗤是荷葉擦船的聲音。'},
-  {q:'老殘遊湖從午後到傍晚，課文中哪一句看得出天色已經偏晚？',o:['一片白花映著帶水氣的斜陽','朝北不遠，便到歷下亭前','次日清晨起來','到了濟南府'],hl:'一片白花映著帶水氣的斜陽',why:'「斜陽」是太陽偏西，已經是傍晚。'}]
-};
+const Q=MH.Q;
 
 // ---------- 劇情 ----------
 // {bg} 換場景、{w,t,hl} 對話（hl＝課文中的原句）、{quiz,n} 抽題、{task} 互動小任務、{goal} 下一個目標、{act} 動作
@@ -537,7 +547,7 @@ const SCENES={
   {w:'老殘',t:'那你幫它補起來吧。'},
   {task:'couplet'},
   {w:'老殘',t:'上面寫「杜工部句」，下面寫「道州何紹基書」。杜工部就是杜甫；何紹基是有名的書法家。',hl:'下寫著「道州何紹基書」'},
-  {quiz:'lixia',n:1},
+  {quiz:'lixia',n:2},
   {w:'老殘',t:'亭子旁邊雖有幾間房屋，也沒有什麼意思。走，向西盪去。',hl:'也沒有什麼意思'},
   {act:()=>getCard('歷下亭')},
   {goal:'tie'}],
@@ -547,24 +557,25 @@ const SCENES={
   {w:'老婆婆',t:'小兄弟，你道鐵公是誰？',hl:'你道鐵公是誰'},
   {w:'老婆婆',t:'就是明初與燕王為難的那位鐵鉉。燕王打過來，他死守濟南，到死都不肯投降。',hl:'就是明初與燕王為難的那位鐵鉉'},
   {w:'老婆婆',t:'後人敬他的忠義，我們土生土長的濟南人，春秋時節都來這兒進香。',hl:'後人敬他的忠義'},
-  {quiz:'tieA',n:1},
+  {quiz:'tieA',n:2},
   {act:()=>getCard('鐵公祠')},
   {w:'旁白',t:'老殘走到鐵公祠前，轉過身子……',hl:'到了鐵公祠前，朝南一望'},
   {task:'turn'},
-  {bg:'qianfo',gray:1},
-  {w:'旁白',t:'到了鐵公祠前，朝南一望……',hl:'到了鐵公祠前，朝南一望'},
+  {bg:'qianfo',gray:1,zoom:1.16,cap:'朝南一望　對面是千佛山'},
+  {w:'旁白',t:'到了鐵公祠前，朝南一望——隔著大明湖，對面就是千佛山。',hl:'到了鐵公祠前，朝南一望',act:()=>showTags([{x:820,y:215,t:'千佛山'},{x:300,y:470,t:'大明湖',c:'blue'}])},
   {w:'老殘',t:'只見對面千佛山上，梵宇僧樓，與那蒼松翠柏，高下相間。',hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},
-  {w:'小藥童',t:'可是……我怎麼看不清山的顏色？'},
+  {w:'小藥童',t:'可是……我怎麼看不清山的顏色？',act:()=>clearTags()},
   {w:'老殘',t:'你仔細聽我怎麼形容，把顏色一個一個找回來。'},
   {task:'colors'},
-  {w:'老殘',t:'千佛山上，梵宇僧樓，與那蒼松翠柏，高下相間……更有一株半株的丹楓夾在裡面。',hl:'更有一株半株的丹楓夾在裡面'},
-  {w:'老殘',t:'小藥童，你看出來了嗎？這四種顏色，各是山上的什麼東西？'},
+  {w:'老殘',t:'千佛山上，梵宇僧樓，與那蒼松翠柏，高下相間……更有一株半株的丹楓夾在裡面。山腳下的湖岸，還有一排正在開花的蘆葦。',hl:'更有一株半株的丹楓夾在裡面'},
+  {w:'老殘',t:'小藥童，你看出來了嗎？這四種顏色，各是什麼東西？'},
   {task:'colormean'},
-  {w:'老殘',t:'這一片紅白青綠，彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風。',hl:'彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風'},
+  {w:'老殘',t:'這一片紅白青綠，彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風。',hl:'彷彿宋人趙千里的一幅大畫，做了一架數十里長的屏風',cap:'彷彿一架數十里長的屏風'},
   {w:'老殘',t:'趙千里是宋朝的畫家，最會畫這種青綠山水。'},
   {quiz:'tieM',n:2},
-  {act:()=>getCard('千佛山')},
-  {w:'旁白',t:'正在嘆賞不絕，忽聽一聲漁唱……',hl:'正在嘆賞不絕，忽聽一聲漁唱',act:()=>tone('song')},
+  {act:()=>{clearTags();getCard('千佛山');}},
+  {task:'song'},
+  {quiz:'song',n:1},
   {task:'lookdown'},
   {w:'老殘',t:'誰知那明湖業已澄淨得同鏡子一般。那千佛山的倒影映在湖裡，顯得明明白白。',hl:'誰知那明湖業已澄淨得同鏡子一般'},
   {w:'老殘',t:'那樓臺樹木格外光彩，覺得比上頭的一個千佛山還要好看，還要清楚。',hl:'還要好看，還要清楚'},
@@ -592,7 +603,7 @@ const SCENES={
   {w:'老殘',t:'這裡是「進獻」：拿一盞清涼的泉水供奉秋菊。夜裡三更，華麗的遊船穿過荷花。'},
   {w:'老殘',t:'今天看了好幾副對聯，你記得哪一副掛在哪裡嗎？'},
   {task:'hang'},
-  {quiz:'shui',n:1},
+  {quiz:'shui',n:2},
   {act:()=>getCard('古水仙祠')},
   {w:'老殘',t:'過了水仙祠，仍舊下船，盪到歷下亭的後面去。',hl:'過了水仙祠，仍舊下了船'},
   {act:()=>exitInner()},
@@ -606,7 +617,7 @@ const SCENES={
   {w:'旁白',t:'那已老的蓮蓬不斷的蹦到船窗裡面來。',hl:'那已老的蓮蓬不斷的蹦到船窗裡面來'},
   {w:'老殘',t:'快接住！',act:()=>spawnBirds(P.x,P.z)},
   {task:'lotus'},
-  {quiz:'he',n:1},
+  {quiz:'he',n:2},
   {act:()=>getCard('蓮蓬')},
   {w:'老殘',t:'天色不早了，划回鵲華橋，把景色說給老畫師聽吧。'},
   {goal:'end'}],
@@ -615,7 +626,9 @@ const SCENES={
   {w:'旁白',t:'老殘隨手摘了幾個蓮蓬，一面吃著，一面船已到了鵲華橋畔了。',hl:'船已到了鵲華橋畔了'},
   {w:'老畫師',t:'回來啦！快說說，你們今天是怎麼走的？'},
   {task:'route'},
-  {w:'老畫師',t:'好！再考你兩題，免得我畫錯了。'},
+  {w:'老畫師',t:'好！最難畫的是千佛山。你們在鐵公祠前看到的景色，再說給我聽聽。'},
+  {quiz:'finQ',n:2},
+  {w:'老畫師',t:'再考你兩題，免得我畫錯了。'},
   {quiz:'fin',n:2},
   {w:'老畫師',t:'有聲有色！我這就把八段景色畫上去。'},
   {act:()=>showEnd()}]
@@ -634,7 +647,7 @@ let step=-1, mainShown=false, goalNow=null; const visited={}; const gotCards={};
 const answered=[];
 const labelBox=document.getElementById('labels');
 stations.forEach(s=>{ s.el=document.createElement('div'); s.el.className='label'; s.el.textContent=s.name; labelBox.appendChild(s.el); });
-const mLabel=document.createElement('div'); mLabel.className='label'; mLabel.textContent='千佛山'; labelBox.appendChild(mLabel);
+const mLabel=document.createElement('div'); mLabel.className='label big'; mLabel.textContent='千佛山'; labelBox.appendChild(mLabel);
 const scrollBar=document.getElementById('scrollbar');
 CARDS.forEach(c=>{ const s=document.createElement('span'); s.title=c; scrollBar.appendChild(s); });
 function getCard(n){ if(!n||gotCards[n])return; gotCards[n]=1; cards++; document.getElementById('cards').textContent=cards;
@@ -642,7 +655,7 @@ function getCard(n){ if(!n||gotCards[n])return; gotCards[n]=1; cards++; document
 let toastT; function toast(s){ const t=document.getElementById('toast'); t.textContent=s; t.style.opacity=1; clearTimeout(toastT); toastT=setTimeout(()=>t.style.opacity=0,2000); }
 function updHint(){ const h=document.getElementById('hint'); const id=order[step];
   document.getElementById('main').hidden=!mainShown;
-  h.textContent= goalNow?('目標：'+goalNow):(talking?'目標：完成這一站的任務':(id?'目標：'+GOALS[id]:'遊覽結束'));
+  h.textContent= goalNow?('目標：'+goalNow):(talking?'目標：完成這一站的任務':(id?'目標：'+GOALS[id]:(step<0?'準備出發':'遊覽結束')));
   stations.forEach(s=>{ s.el.classList.toggle('done',!!visited[s.id]); s.el.classList.toggle('next',s.id===id || (id==='end'&&s.id==='que')); }); }
 
 // ---------- 音效（不用音檔，用程式合成） ----------
@@ -656,17 +669,151 @@ function tone(kind){ const a=ac(); if(!a) return; const t0=a.currentTime;
   if(kind==='flap'){ for(let k=0;k<7;k++){ const len=0.06, buf=a.createBuffer(1,a.sampleRate*len,a.sampleRate), d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(d.length/4));
       const s=a.createBufferSource(); s.buffer=buf; const f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900; const g=a.createGain(); g.gain.value=0.9; s.connect(f).connect(g).connect(a.destination); s.start(t0+k*0.11); } }
   if(kind==='pop'){ const o=a.createOscillator(),g=a.createGain(); o.frequency.setValueAtTime(600,t0); o.frequency.exponentialRampToValueAtTime(1200,t0+0.08); g.gain.setValueAtTime(0.1,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.15); o.connect(g).connect(a.destination); o.start(t0); o.stop(t0+0.15); }
+  if(kind==='chime'){ [587.33,739.99,880,1174.66].forEach((f,i)=>pluck(f,t0+i*0.09,0.09,a.destination)); }
 }
+// 殘響（讓配樂和漁歌有湖面上的空間感）
+let REV=null; function reverb(){ const a=ac(); if(!a) return null; if(REV) return REV;
+  const n=Math.floor(a.sampleRate*2.6), b=a.createBuffer(2,n,a.sampleRate);
+  for(let ch=0;ch<2;ch++){ const d=b.getChannelData(ch); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3); }
+  REV=a.createConvolver(); REV.buffer=b; const g=a.createGain(); g.gain.value=0.55; REV.connect(g).connect(a.destination); return REV; }
+// 古箏般的撥弦音
+function pluck(f,t,vel,dest){ const a=AC; if(!a) return; const o=a.createOscillator(), o2=a.createOscillator(), g=a.createGain(), g2=a.createGain(), lp=a.createBiquadFilter();
+  o.type='triangle'; o2.type='sine'; o.frequency.setValueAtTime(f*0.982,t); o.frequency.exponentialRampToValueAtTime(f,t+0.08); o2.frequency.value=f*2.004; g2.gain.value=0.3;
+  lp.type='lowpass'; lp.frequency.setValueAtTime(3600,t); lp.frequency.exponentialRampToValueAtTime(800,t+1.4);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vel,t+0.006); g.gain.exponentialRampToValueAtTime(0.0006,t+2.8);
+  o.connect(lp); o2.connect(g2).connect(lp); lp.connect(g); g.connect(dest); const r=reverb(); if(r){ const s=a.createGain(); s.gain.value=0.5; g.connect(s).connect(r); }
+  o.start(t); o2.start(t); o.stop(t+2.9); o2.stop(t+2.9); }
+// ---------- 配樂：五聲音階的古箏，隨機但好聽地慢慢彈 ----------
+const MUS={on:true,bus:null,next:0,idx:5,beat:0,timer:null,duck:1};
+try{ MUS.on=localStorage.getItem('mh_music')!=='off'; }catch(e){}
+const PENTA=[146.83,164.81,185,220,246.94,293.66,329.63,369.99,440,493.88,587.33,659.25];
+function musicStart(){ const a=ac(); if(!a) return; if(!MUS.bus){ MUS.bus=a.createGain(); MUS.bus.gain.value=0; MUS.bus.connect(a.destination); }
+  MUS.next=Math.max(MUS.next,a.currentTime+0.3); musicGain(); if(!MUS.timer) MUS.timer=setInterval(musicTick,200); }
+function musicGain(){ if(!MUS.bus||!AC) return; MUS.bus.gain.setTargetAtTime(MUS.on?0.85*MUS.duck:0,AC.currentTime,0.4); }
+function duck(v){ MUS.duck=v; musicGain(); }
+function musicTick(){ const a=AC; if(!a||!MUS.on||!MUS.bus) return; const B=0.6;
+  if(MUS.next<a.currentTime) MUS.next=a.currentTime+0.15;
+  while(MUS.next<a.currentTime+1){ const t=MUS.next;
+    if(MUS.beat%16===0){ for(let k=0;k<4;k++) pluck(PENTA[Math.max(0,MUS.idx-3+k)],t+k*0.07,0.05,MUS.bus); }       // 每一句開頭的刮奏
+    if(MUS.beat%4===0) pluck([73.42,110,98,73.42][(MUS.beat/4)%4],t,0.07,MUS.bus);                         // 低音
+    let dur=[1,1,1,2,2,3][Math.floor(Math.random()*6)];
+    if(Math.random()<0.18 && MUS.beat%16>2){ dur=1; }                                                       // 休止
+    else { MUS.idx=Math.max(3,Math.min(PENTA.length-1,MUS.idx+[-2,-1,-1,1,1,2,0][Math.floor(Math.random()*7)])); pluck(PENTA[MUS.idx],t,0.085,MUS.bus);
+      if(dur>=2&&Math.random()<0.4) pluck(PENTA[MUS.idx],t+B*1.1,0.035,MUS.bus); }                            // 輕輕的回音
+    MUS.next+=dur*B; MUS.beat+=dur; } }
+const musBtn=document.getElementById('musBtn');
+function musLabel(){ musBtn.textContent=MUS.on?'♪ 配樂 開':'♪ 配樂 關'; musBtn.classList.toggle('off',!MUS.on); }
+musBtn.addEventListener('click',e=>{ e.stopPropagation(); MUS.on=!MUS.on; try{ localStorage.setItem('mh_music',MUS.on?'on':'off'); }catch(_){} musLabel(); if(MUS.on) musicStart(); else musicGain(); });
+musLabel();
+// ---------- 漁歌：用程式合成的男聲哼唱（「啊」的母音＋顫音） ----------
+function sing(){ const a=ac(); if(!a) return 5; const t0=a.currentTime+0.08;
+  const N=[[220,0.55],[261.63,0.45],[293.66,1.2],[261.63,0.35],[220,0.4],[196,1.0],[220,0.5],[196,0.35],[164.81,1.9]];
+  const o=a.createOscillator(); o.type='sawtooth'; const vib=a.createOscillator(), vg=a.createGain(); vib.frequency.value=5.3; vg.gain.setValueAtTime(0,t0); vg.gain.linearRampToValueAtTime(5,t0+0.8); vib.connect(vg).connect(o.frequency);
+  const out=a.createGain(); out.gain.value=0; const pre=a.createBiquadFilter(); pre.type='lowpass'; pre.frequency.value=3000; o.connect(pre);
+  [[730,1,7],[1090,0.55,9],[2440,0.22,11]].forEach(([f,gv,q])=>{ const bp=a.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=f; bp.Q.value=q; const g=a.createGain(); g.gain.value=gv*3.2; pre.connect(bp).connect(g).connect(out); });
+  out.connect(a.destination); const r=reverb(); if(r){ const s=a.createGain(); s.gain.value=0.9; out.connect(s).connect(r); }
+  let t=t0; N.forEach(([f,d],i)=>{ if(!i) o.frequency.setValueAtTime(f,t); else o.frequency.setTargetAtTime(f,t,0.05);
+    out.gain.setTargetAtTime(0.2,t,0.05); out.gain.setTargetAtTime(0.13,t+d*0.75,0.08); t+=d; });
+  out.gain.setTargetAtTime(0.0001,t-0.3,0.25);
+  o.start(t0); vib.start(t0); o.stop(t+1); vib.stop(t+1); return t-t0+0.6; }
 
 // ---------- 視覺小說畫面 ----------
 const vn=document.getElementById('vn'), bgA=document.getElementById('bgA'), bgB=document.getElementById('bgB'), fx=document.getElementById('fx'), sunsetEl=document.getElementById('sunset');
 const actor=document.getElementById('actor'); const fxc=document.getElementById('fxc'), fctx=fxc.getContext('2d');
 const dlg=document.getElementById('dlg'), who=document.getElementById('who'), txt=document.getElementById('txt'), face=document.getElementById('face'), ch=document.getElementById('choices'), more=document.getElementById('more'), quoteEl=document.getElementById('quote');
 let curBg=null, front=bgA, gray=0;
-function setBg(key,opt){ opt=opt||{}; vn.classList.remove('clear'); fxc.hidden=true; fxc.className=''; const url=BG[key]; const back=front===bgA?bgB:bgA;
-  back.style.backgroundImage='url("'+url+'"), linear-gradient(#cfe0d8,#9fbfae)'; back.className='bg in '+(key==='qianfo'?'tall':'');
-  front.className='bg out '+(curBg==='qianfo'?'tall':''); front=back; curBg=key;
-  setGray(opt.gray||0); sunsetEl.style.opacity=opt.dusk?0.55:0; fx.className=''; }
+const pic=document.getElementById('pic'), ov=document.getElementById('ov'), octx=ov.getContext('2d'), tagsEl=document.getElementById('tags'), capEl=document.getElementById('cap'), songBanner=document.getElementById('songBanner');
+// 插圖區：完整放進畫面（不裁切），位置和背景圖一致（水平置中、垂直 30%）
+function layoutPic(){ const W=innerWidth, H=innerHeight, s=Math.min(W/1600,H/900), w=1600*s, h=900*s;
+  pic.style.left=(W-w)/2+'px'; pic.style.top=(H-h)*0.3+'px'; pic.style.width=w+'px'; pic.style.height=h+'px';
+  const d=Math.min(window.devicePixelRatio||1,2.5); ov.width=Math.round(w*d); ov.height=Math.round(h*d); }
+addEventListener('resize',layoutPic); layoutPic();
+const CAPS={jinan:'濟南府　家家泉水，戶戶垂楊',que:'鵲華橋',lixia:'歷下亭',tie:'鐵公祠',qianfo:'朝南一望　對面是千佛山',reed:'湖的南岸　一片蘆花',shui:'古水仙祠',lotus:'歷下亭後　荷花叢'};
+let capT; function setCap(s){ clearTimeout(capT); if(!s){ capEl.style.opacity=0; capT=setTimeout(()=>capEl.hidden=true,500); return; } capEl.textContent=s; capEl.hidden=false; requestAnimationFrame(()=>capEl.style.opacity=1); }
+// 圖上的標示（座標用原圖 1600×900 的位置）
+function addTag(g){ const e=document.createElement('div'); e.className='tag'+(g.c?' '+g.c:''); e.textContent=g.t; e.style.left=(g.x/16)+'%'; e.style.top=(g.y/9)+'%'; tagsEl.appendChild(e); }
+function showTags(list){ clearTags(); list.forEach(addTag); }
+function clearTags(){ tagsEl.innerHTML=''; }
+function setBg(key,opt){ opt=opt||{}; vn.classList.remove('clear'); document.body.classList.add('vnfull'); fxc.hidden=true; fxc.className=''; qfStop(); const url=BG[key]; const back=front===bgA?bgB:bgA;
+  back.style.setProperty('--im','url("'+url+'")'); back.className='bg in';
+  front.className='bg out'; front=back; curBg=key;
+  setGray(opt.gray||0); sunsetEl.style.opacity=opt.dusk?0.55:0; fx.className=''; setCap(opt.cap!==undefined?opt.cap:(CAPS[key]||''));
+  if(key==='qianfo') qfStart(opt); }
+
+// ---------- 千佛山畫面：補上蘆花、漁人撐船唱歌、湖面由波動變成鏡子 ----------
+const RB={y0:360,y1:540,shore:455};   // 蘆葦帶在原圖中的位置
+let REED=null;
+function buildReeds(){ const S=2, W=1600*S, H=(RB.y1-RB.y0)*S, sh=(RB.shore-RB.y0)*S;
+  let sd=11; const r=()=>{ sd=(sd*16807)%2147483647; return (sd-1)/2147483646; };
+  const up=document.createElement('canvas'); up.width=W; up.height=sh+6; const c=up.getContext('2d'); c.lineCap='round';
+  // 底下的葦葉
+  for(let x=0;x<W;x+=2.5){ const h=14+r()*34, l=(r()-.5)*14; c.strokeStyle=r()<.5?'rgba(120,128,70,.9)':'rgba(165,145,80,.9)'; c.lineWidth=2; c.beginPath(); c.moveTo(x,sh+4); c.quadraticCurveTo(x+l*0.3,sh-h*0.6,x+l,sh-h); c.stroke(); }
+  // 蘆葦稈與雪白的蘆花（後排小、前排大）
+  [[0.7,0.75],[1,1]].forEach(([k,al])=>{ for(let x=-10;x<W+10;x+=k<1?5:6.5){ if(Math.sin(x*0.011)+Math.sin(x*0.037+2)<-1.25) continue;
+    const h=(56+r()*58)*k, lean=(r()-.35)*18*k, tx=x+lean, ty=sh-h;
+    c.strokeStyle='rgba(150,128,82,'+al+')'; c.lineWidth=1.6*k; c.beginPath(); c.moveTo(x,sh+3); c.quadraticCurveTo(x+lean*0.2,sh-h*0.5,tx,ty); c.stroke();
+    c.save(); c.translate(tx,ty); c.rotate(lean*0.02+0.25); const L=(26+r()*16)*k;
+    c.fillStyle='rgba(255,252,243,'+(0.55*al)+')'; c.beginPath(); c.ellipse(2,L*0.45,5*k,L*0.55,0.15,0,7); c.fill();
+    for(let j=0;j<11;j++){ const yy=j*L/11, sd2=j%2?1:-1; c.strokeStyle='rgba('+(j%3?255:226)+','+(j%3?252:222)+','+(j%3?244:212)+','+(0.9*al)+')'; c.lineWidth=1.5*k;
+      c.beginPath(); c.moveTo(0,yy); c.quadraticCurveTo(sd2*4*k,yy+5*k,sd2*(5+r()*6)*k,yy+(9+r()*5)*k); c.stroke(); }
+    c.restore(); } });
+  const mk=()=>{ const b=document.createElement('canvas'); b.width=W; b.height=H; const x=b.getContext('2d'); x.drawImage(up,0,0);
+    x.save(); x.translate(0,2*sh); x.scale(1,-1); x.globalAlpha=0.5; x.drawImage(up,0,0); x.restore();
+    x.globalCompositeOperation='destination-out'; for(let y=sh+3;y<H;y+=5){ x.fillStyle='rgba(0,0,0,.35)'; x.fillRect(0,y,W,1.6); }
+    const g=x.createLinearGradient(0,sh,0,H); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,1)'); x.fillStyle=g; x.fillRect(0,sh,W,H-sh); x.globalCompositeOperation='source-over'; return b; };
+  const white=mk(), gray=mk(); const gx=gray.getContext('2d'); gx.globalCompositeOperation='source-atop'; gx.fillStyle='rgba(118,116,108,.62)'; gx.fillRect(0,0,W,H);
+  REED={white,gray}; }
+const QF={on:false,veil:1,veilT:1,white:1,glow:0,fisher:null,singing:false,notes:[],tap:null,last:0,noteT:0};
+function qfStart(opt){ if(!REED) buildReeds(); Object.assign(QF,{on:true,veil:1,veilT:1,white:opt.gray?0:1,glow:0,fisher:null,singing:false,notes:[],tap:null,last:0});
+  fxc.width=1600; fxc.height=900; qfPaint(!!opt.gray); fxc.hidden=false; ov.hidden=false;
+  pic.style.transition='none'; pic.style.transform='scale('+(opt.zoom||1)+')'; void pic.offsetWidth; pic.style.transition='';
+  requestAnimationFrame(qfFrame); }
+function qfStop(){ QF.on=false; QF.tap=null; ov.hidden=true; clearTags(); pic.style.transition='none'; pic.style.transform=''; songBanner.hidden=true; }
+function qfPaint(gray){ const im=IMG.qianfo; if(!im.complete||!im.naturalWidth){ im.addEventListener('load',()=>qfPaint(gray),{once:true}); return; }
+  fctx.drawImage(im,0,0,1600,900); if(!gray) return;
+  const d=fctx.getImageData(0,0,1600,900), a=d.data; for(let j=0;j<a.length;j+=4){ const y=(a[j]*.3+a[j+1]*.59+a[j+2]*.11)*0.92+14; a[j]=y; a[j+1]=y*.98; a[j+2]=y*.93; } fctx.putImageData(d,0,0); }
+function waterMask(c){ c.beginPath(); c.moveTo(0,RB.shore+1); c.lineTo(1600,RB.shore+1); c.lineTo(1600,790); c.lineTo(470,790); c.lineTo(430,700); c.lineTo(330,600); c.lineTo(250,548); c.lineTo(0,538); c.closePath(); }
+function qfFrame(now){ if(!QF.on) return; requestAnimationFrame(qfFrame); const t=now/1000, dt=QF.last?Math.min(0.05,t-QF.last):0.016; QF.last=t;
+  const c=octx, k=ov.width/1600; c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,ov.width,ov.height); c.setTransform(k,0,0,k,0,0);
+  QF.veil+=(QF.veilT-QF.veil)*Math.min(1,dt*0.9); QF.glow=Math.max(0,QF.glow-dt*0.45);
+  // 蘆花帶（上下兩個山之間的「墊子」）
+  if(REED){ c.drawImage(QF.white?REED.white:REED.gray,0,RB.y0,1600,RB.y1-RB.y0);
+    if(QF.glow>0){ c.globalCompositeOperation='lighter'; c.globalAlpha=QF.glow*0.8; c.drawImage(REED.white,0,RB.y0,1600,RB.y1-RB.y0); c.globalAlpha=1; c.globalCompositeOperation='source-over';
+      c.fillStyle='rgba(255,255,240,'+QF.glow+')'; for(let i=0;i<26;i++){ const x=(i*137+t*40)%1600, y=RB.shore-30-((i*53)%30); c.font='bold 22px serif'; c.fillText('✦',x,y); } } }
+  // 湖面還有波紋時：倒影被打散、看不清楚
+  if(QF.veil>0.01){ const v=QF.veil, src=fxc.hidden?IMG.qianfo:fxc; c.save(); waterMask(c); c.clip();
+    for(let y=RB.shore;y<792;y+=5){ const off=(Math.sin(y*0.09+t*2.3)*9+Math.sin(y*0.031-t*1.4)*6)*v; c.drawImage(src,0,y,1600,5,off,y,1600,5); }
+    c.fillStyle='rgba(92,124,138,'+(0.55*v)+')'; c.fillRect(0,RB.shore,1600,340);
+    c.strokeStyle='rgba(255,255,255,'+(0.28*v)+')'; c.lineWidth=2; for(let i=0;i<40;i++){ const y=RB.shore+10+(i*37)%320, x=((i*211)+t*(20+i%5*8))%1700-50; c.beginPath(); c.moveTo(x,y); c.lineTo(x+30+(i%4)*14,y); c.stroke(); }
+    c.restore(); }
+  if(QF.fisher) qfFisher(c,t,dt); }
+// 漁人撐船（朝左慢慢前進）
+function qfFisher(c,t,dt){ const F=QF.fisher; F.x=Math.max(880,F.x-dt*13); const bx=F.x, by=668, push=Math.sin(t*1.5);
+  for(let i=0;i<3;i++){ const p=(t*0.45+i/3)%1; c.strokeStyle='rgba(255,255,255,'+(0.5*(1-p))+')'; c.lineWidth=2; c.beginPath(); c.ellipse(bx+70,by+2,20+p*140,(20+p*140)*0.1,0,0,7); c.stroke(); }
+  const body=()=>{ // 船身與烏篷
+    c.fillStyle='#3b2a1e'; c.beginPath(); c.moveTo(bx-120,by-20); c.quadraticCurveTo(bx-60,by+7,bx+10,by+7); c.quadraticCurveTo(bx+85,by+7,bx+112,by-15); c.lineTo(bx+100,by-12); c.quadraticCurveTo(bx,by-5,bx-108,by-15); c.closePath(); c.fill();
+    c.strokeStyle='#9a7a52'; c.lineWidth=2; c.beginPath(); c.moveTo(bx-108,by-15); c.quadraticCurveTo(bx,by-5,bx+100,by-12); c.stroke();
+    c.fillStyle='#2b2925'; c.beginPath(); c.moveTo(bx+22,by-7); c.bezierCurveTo(bx+26,by-46,bx+80,by-46,bx+86,by-9); c.closePath(); c.fill();
+    c.strokeStyle='rgba(180,160,120,.6)'; c.lineWidth=1.5; for(let i=0;i<4;i++){ c.beginPath(); c.moveTo(bx+32+i*13,by-8); c.lineTo(bx+34+i*12,by-36+Math.abs(i-1.5)*3); c.stroke(); }
+    // 撐篙的漁人
+    c.save(); c.translate(bx-40,by-9); c.rotate(-0.1-push*0.08);
+    const hx=-26-push*10, hy=-44;   // 手的位置
+    c.strokeStyle='#6b4a2a'; c.lineWidth=4; c.beginPath(); c.moveTo(hx+30,hy-62); c.lineTo(hx-34,hy+100); c.stroke();     // 竹篙
+    c.fillStyle='#2f3a40'; c.fillRect(-9,-24,6,24); c.fillRect(3,-24,6,24);                                                  // 腿
+    c.fillStyle='#4e5c63'; c.beginPath(); c.moveTo(-11,-62); c.lineTo(11,-62); c.lineTo(15,-22); c.lineTo(-15,-22); c.closePath(); c.fill();   // 衣服
+    c.strokeStyle='#4e5c63'; c.lineWidth=6; c.beginPath(); c.moveTo(-6,-56); c.lineTo(hx,hy); c.moveTo(6,-56); c.lineTo(hx+12,hy-14); c.stroke();  // 手臂
+    c.fillStyle='#d9b48c'; c.beginPath(); c.arc(0,-70,7,0,7); c.fill();                                                        // 臉
+    c.fillStyle='#c9a35a'; c.strokeStyle='#7a5a2a'; c.lineWidth=1.5; c.beginPath(); c.moveTo(-24,-71); c.lineTo(0,-90); c.lineTo(24,-71); c.closePath(); c.fill(); c.stroke();  // 斗笠
+    if(QF.singing){ c.fillStyle='#5a2a1a'; c.beginPath(); c.ellipse(4,-66,2.4,2+Math.abs(Math.sin(t*6))*2,0,0,7); c.fill(); }
+    c.restore(); };
+  c.save(); c.translate(bx,by); c.scale(1.5,1.5); c.translate(-bx,-by);   // 放大一點，讓漁人更明顯
+  c.save(); c.translate(0,2*by); c.scale(1,-1); c.globalAlpha=0.28; body(); c.restore(); c.globalAlpha=1;   // 水中倒影
+  body(); c.restore();
+  // 唱歌時飄出的音符
+  if(QF.singing && t-QF.noteT>0.42){ QF.noteT=t; QF.notes.push({x:bx-50,y:by-165,vx:-8+Math.random()*30,life:0,ch:'♪♫♩'[Math.floor(Math.random()*3)]}); }
+  QF.notes=QF.notes.filter(n=>(n.life+=dt)<3.2); QF.notes.forEach(n=>{ const a=1-n.life/3.2; c.font='bold '+(30+n.life*8)+'px serif'; c.lineWidth=5; c.strokeStyle='rgba(255,250,235,'+a+')'; c.fillStyle='rgba(178,58,42,'+a+')';
+    const x=n.x+n.vx*n.life+Math.sin(n.life*3)*10, y=n.y-n.life*48; c.strokeText(n.ch,x,y); c.fillText(n.ch,x,y); }); }
+pic.addEventListener('pointerdown',e=>{ if(!QF.tap) return; e.stopPropagation(); e.preventDefault(); const r=pic.getBoundingClientRect(); QF.tap((e.clientX-r.left)/r.width*1600,(e.clientY-r.top)/r.height*900); });
 function setGray(v){ gray=v; front.style.filter='grayscale('+v+') saturate('+(1+0.15*(1-v))+')'; }
 function showActor(w){ const u=PPL[w]; if(!u){ actor.classList.remove('show'); return; }
   if(actor.dataset.who!==w){ actor.classList.remove('show'); actor.dataset.who=w; actor.style.backgroundImage='url("'+u+'")'; void actor.offsetWidth; }
@@ -676,15 +823,16 @@ function quoteHtml(hl){ const i=paraOf(hl); if(i<0) return ''; return '<span cla
 function lineHtml(s){ let t=esc(s.t); if(s.hl && s.t.includes(s.hl)) t=t.replace(esc(s.hl),'<mark>'+esc(s.hl)+'</mark>'); return t; }
 
 let queue=[], talking=false, busy=false, onDone=null, curRight=null, lastHl=null;
-function play(steps,done,clear){ queue=steps.slice(); talking=true; target=null; onDone=done; vn.classList.toggle('clear',!!clear); vn.hidden=false; document.body.classList.add('vn'); requestAnimationFrame(()=>vn.classList.add('on')); next(); }
-function closeVN(){ document.body.classList.remove('vn'); vn.classList.remove('on'); actor.classList.remove('show'); setTimeout(()=>{ if(!talking) vn.hidden=true; },600); }
+function play(steps,done,clear){ queue=steps.slice(); talking=true; target=null; onDone=done; vn.classList.toggle('clear',!!clear); document.body.classList.toggle('vnfull',!clear); if(clear) setCap(''); vn.hidden=false; document.body.classList.add('vn'); requestAnimationFrame(()=>vn.classList.add('on')); next(); }
+function closeVN(){ document.body.classList.remove('vn','vnfull'); vn.classList.remove('on'); actor.classList.remove('show'); setCap(''); qfStop(); setTimeout(()=>{ if(!talking) vn.hidden=true; },600); }
 function next(){ if(busy) return;
   if(!queue.length){ talking=false; closeVN(); const d=onDone; onDone=null; d&&d(); return; }
-  const s=queue.shift();
+  const s=queue.shift(); if(TTS.ok&&speechSynthesis.speaking) speechSynthesis.cancel();
+  if(s.cap!==undefined && !s.bg) setCap(s.cap);
   if(s.bg){ setBg(s.bg,s); return next(); }
   if(s.quiz){ const picks=shuffle(Q[s.quiz]).slice(0,s.n); queue.unshift(...picks.map(q=>({q}))); return next(); }
   if(s.q) return ask(s.q);
-  if(s.task) return TASKS[s.task]();
+  if(s.task){ curTask=s.task; return TASKS[s.task](); }
   if(s.igoal){ goalNow=s.igoal; updHint(); queue.unshift({w:'旁白',t:'【下一步】'+s.igoal}); return next(); }
   if(s.goal){ setupWords(s.goal); goalNow=GOALS[s.goal]; updHint(); queue.unshift({w:'旁白',t:'【下一站】'+GOALS[s.goal]}); return next(); }
   if(!s.t){ s.act&&s.act(); return next(); }
@@ -694,11 +842,18 @@ function next(){ if(busy) return;
 function wait(){ busy=true; more.hidden=true; dlg.classList.add('asking'); }
 function done(go){ busy=false; dlg.classList.remove('asking'); if(go!==false) next(); }
 function goBtn(label){ const b=document.createElement('button'); b.className='go'; b.type='button'; b.textContent=label||'繼續 ▶'; b.addEventListener('click',e=>{e.stopPropagation(); done();}); ch.appendChild(b); b.focus({preventScroll:true}); }
-function record(q,first,picked){ answered.push({q,first,picked}); }
+function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curTask]; answered.push({q,first,picked}); adapt(first); }
+// ---------- 提示自動分兩級：連續第一次就答對 3 題 → 挑戰模式（收起線索）；挑戰模式中答錯 2 題 → 回一般模式 ----------
+const CH={on:false,streak:0,wrong:0,ever:false}; let curTask='';
+function adapt(first){ if(first) CH.streak++; else CH.streak=0;
+  if(!CH.on && CH.streak>=3){ CH.on=true; CH.ever=true; CH.wrong=0; toast('🔥 進入挑戰模式：線索收起來了！'); }
+  else if(CH.on && !first && ++CH.wrong>=2){ CH.on=false; CH.streak=0; toast('回到一般模式，線索回來了'); }
+  modeChip(); }
+function modeChip(){ const c=document.getElementById('modeChip'); if(c){ c.hidden=!CH.on; } }
 
 function ask(q){ wait(); const sp=q.w||'老殘'; who.textContent=sp+'考你'; setFace(sp); showActor(sp);
-  txt.textContent=q.q; quoteEl.innerHTML='<button class="peek" type="button">📜 看課文線索</button>';
-  quoteEl.querySelector('.peek').addEventListener('click',e=>{ e.stopPropagation(); openText(q.hl); });
+  txt.textContent=q.q; quoteEl.innerHTML=CH.on?'<span class="qt">🔥 挑戰模式：沒有線索，靠自己！</span>':'<button class="peek" type="button">📜 看課文線索</button>';
+  if(!CH.on) quoteEl.querySelector('.peek').addEventListener('click',e=>{ e.stopPropagation(); openText(q.hl); });
   ch.innerHTML=''; let wrong=false, picked=null;
   shuffle(q.o.map((o,i)=>({o,ok:i===0}))).forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.textContent=c.o; b.className='opt'; if(c.ok) curRight=b;
     b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
@@ -706,19 +861,19 @@ function ask(q){ wait(); const sp=q.w||'老殘'; who.textContent=sp+'考你'; se
         txt.innerHTML='<b class="ok">答對了！</b>'+esc(q.why); quoteEl.innerHTML=quoteHtml(q.hl)+'<span class="src">「'+esc(q.hl)+'」</span>';
         record(q,!wrong,picked); goBtn(); }
       else { b.disabled=true; b.classList.add('wrong'); tone('bad'); if(!wrong){ wrong=true; picked=c.o; }
-        txt.innerHTML=esc(q.q)+'<br><span class="tip">再想想！線索在課文這一句：「'+esc(q.hl)+'」</span>'; } });
+        txt.innerHTML=esc(q.q)+'<br><span class="tip">'+(CH.on?'再想想！（挑戰模式不給線索，可以按右上角「📜 課文」自己找）':'再想想！線索在課文這一句：「'+esc(q.hl)+'」')+'</span>'; } });
     ch.appendChild(b); }); }
 
 // 課文全文（需要時才打開，不蓋住畫面）
 const textBox=document.getElementById('textbox');
 function openText(hl){ const i=hl?paraOf(hl):(lastHl?paraOf(lastHl):0);
-  let html=PASSAGE.map((p,k)=>'<p'+(k===i?' id="cur"':'')+'><span class="pn">'+NUM[k]+'</span>'+(k===i&&hl?esc(p).replace(esc(hl),'<mark>'+esc(hl)+'</mark>'):esc(p))+'</p>').join('');
+  let html=PASSAGE.map((p,k)=>'<p'+(k===i?' id="cur"':'')+'><span class="pn">'+NUM[k]+'</span>'+(k===i&&hl?esc(p).replace(esc(hl),'<mark>'+esc(hl)+'</mark>'):esc(p))+(TTS.ok?'<button class="say" type="button" data-i="'+k+'">🔊</button>':'')+'</p>').join('');
   textBox.querySelector('.tb').innerHTML=html; textBox.hidden=false; const c=document.getElementById('cur'); c&&c.scrollIntoView({block:'center'}); }
 textBox.addEventListener('click',e=>{ if(e.target===textBox||e.target.classList.contains('close')) textBox.hidden=true; });
 document.getElementById('textBtn').addEventListener('click',e=>{ e.stopPropagation(); openText(null); });
 
 dlg.addEventListener('click',e=>{ if(!busy) next(); });
-vn.addEventListener('click',e=>{ if(e.target===vn||e.target.classList.contains('bg')||e.target===actor){ if(!busy) next(); } });
+vn.addEventListener('click',e=>{ if(e.target===vn||e.target.classList.contains('bg')||e.target===actor||(!QF.tap&&e.target.closest('#pic'))){ if(!busy) next(); } });
 
 // ---------- 互動小任務 ----------
 const TASKS={
@@ -741,8 +896,8 @@ const TASKS={
   const on={}; let px=null, cat=null;
   try{ px=pixels('qianfo'); const d=px.img.data; cat=new Uint8Array(px.W*px.H);
     for(let i=0;i<cat.length;i++){ const [hh,s,l]=hsl(d[i*4],d[i*4+1],d[i*4+2]);
-      cat[i]= (s>.28&&l>.18&&(hh<42||hh>330))?1 : (l>.74&&s<.38)?2 : (s>.12&&hh>=170&&hh<260)?3 : (s>.14&&hh>=62&&hh<170)?4 : 0; }
-    fxc.width=px.W; fxc.height=px.H; fxc.className='tall'; fxc.hidden=false; }catch(e){ px=null; }
+      cat[i]= (s>.28&&l>.18&&(hh<42||hh>330))?1 : (s>.12&&hh>=170&&hh<260)?3 : (s>.14&&hh>=62&&hh<170)?4 : 0; }   // 白色＝湖岸的蘆花（另外畫在上面的那一層）
+    fxc.width=px.W; fxc.height=px.H; fxc.className=''; fxc.hidden=false; }catch(e){ px=null; }
   const ids={red:1,white:2,blue:3,green:4};
   const draw=(boost)=>{ if(!px) return; const d=px.img.data, out=fctx.createImageData(px.W,px.H), o=out.data;
     for(let i=0;i<cat.length;i++){ const j=i*4, c=cat[i], r=d[j],g=d[j+1],b=d[j+2];
@@ -751,13 +906,14 @@ const TASKS={
     fctx.putImageData(out,0,0); };
   draw(0);
   const render=()=>{ txt.innerHTML='依照老殘的形容，把顏色一個一個找回來：<div class="colors">'+pairs.map((p,i)=>'<span class="'+(i<k?'got':i===k?'now':'')+'">'+p[0]+(i<k?'<b>'+p[1]+'</b>':'＿＿')+'</span>').join('，')+'</div>'; };
-  render(); quoteEl.innerHTML='<span class="qt">每答對一種，山上那種顏色就會亮起來</span>';
+  render(); quoteEl.innerHTML='<span class="qt">每答對一種，畫面上那種顏色就會亮起來</span>';
   ch.innerHTML=''; shuffle(['火紅','雪白','靛青','碧綠','粉紅','墨黑']).forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.className='opt tile'; b.textContent=c;
     b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
       if(c===pairs[k][1]){ const id=ids[pairs[k][2]]; on[id]=1; k++; b.disabled=true; b.classList.add('right'); tone('pop');
-        if(px){ draw(id); setTimeout(()=>draw(0),1400); } else setGray(1-k/4); render();
+        if(id===2){ QF.white=1; QF.glow=1; tone('chime'); toast('雪白的，是湖岸那一排蘆花！'); }
+        else if(px){ draw(id); setTimeout(()=>draw(0),1400); } else setGray(1-k/4); render();
         if(k===4){ [...ch.children].forEach(x=>x.disabled=true); tone('ding');
-          setTimeout(()=>{ setGray(0); fxc.hidden=true; fx.className='shine'; },1600);
+          setTimeout(()=>{ setGray(0); qfPaint(false); QF.white=1; fx.className='shine'; },1600);
           txt.innerHTML+='<b class="ok">千佛山的顏色回來了！</b>四句句型相同（排比），寫的都是顏色（視覺摹寫）。';
           record({q:'找回顏色：紅的火紅，白的雪白，青的靛青，綠的碧綠',o:['火紅、雪白、靛青、碧綠'],hl:'紅的火紅，白的雪白，青的靛青，綠的碧綠'},!miss,'配錯顏色'); goBtn(); } }
       else { miss=true; b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
@@ -765,31 +921,54 @@ const TASKS={
  // 千佛山：每種顏色指的是山上的什麼
  colormean(){ wait(); who.textContent='任務：顏色是什麼？'; setFace(null); showActor(null);
   const C=[{c:'紅的火紅',k:'red',a:'丹楓',why:'紅色的是丹楓：葉子變紅的楓樹。'},
-           {c:'白的雪白',k:'white',a:'梵宇僧樓',why:'白色的是梵宇僧樓：寺廟和僧舍的白牆。'},
+           {c:'白的雪白',k:'white',a:'蘆花',why:'白色的是蘆花：湖岸那一排正在開花的蘆葦，雪白一片。'},
            {c:'青的靛青',k:'blue',a:'蒼松',why:'青藍色的是蒼松：顏色深青的松樹。'},
            {c:'綠的碧綠',k:'green',a:'翠柏',why:'碧綠色的是翠柏：翠綠的柏樹。'}];
-  const ITEMS=['丹楓','梵宇僧樓','蒼松','翠柏']; const COL={red:'#d0402a',white:'#f4f1ea',blue:'#2f5d8c',green:'#3d8a4a'};
+  const ITEMS=['丹楓','蘆花','蒼松','翠柏']; const COL={red:'#d0402a',white:'#f4f1ea',blue:'#2f5d8c',green:'#3d8a4a'};
   let k=0, miss=false, picked=null; const got={};
   const render=()=>{ const c=C[k];
     txt.innerHTML='<span class="cdot" style="background:'+COL[c.k]+'"></span>「<b>'+c.c+'</b>」，指的是山上的什麼？'
       +'<div class="colors">'+C.map((x,i)=>'<span class="'+(i<k?'got':i===k?'now':'')+'">'+x.c.slice(0,2)+'：'+(i<k?'<b>'+x.a+'</b>':'＿＿')+'</span>').join('　')+'</div>';
-    quoteEl.innerHTML='<span class="qt">線索：梵宇僧樓，與那蒼松翠柏，高下相間……更有一株半株的丹楓</span>';
+    quoteEl.innerHTML='<span class="qt">線索：蒼松翠柏……一株半株的丹楓……還有山腳下湖岸那一排白花</span>';
     ch.innerHTML=''; ITEMS.forEach(it=>{ const b=document.createElement('button'); b.type='button'; b.className='opt tile'; b.textContent=it; if(got[it]){ b.disabled=true; b.classList.add('right'); }
       b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
         if(it===c.a){ got[it]=1; tone('pop'); k++;
           if(k<C.length){ render(); toast(c.why); }
-          else { tone('ding'); txt.innerHTML='<b class="ok">全部配對正確！</b><br>紅：丹楓　白：梵宇僧樓（寺廟白牆）　青：蒼松　綠：翠柏<br>老殘用四種顏色，把山上的寺廟、松柏、楓葉一次寫出來。';
+          else { tone('ding'); txt.innerHTML='<b class="ok">全部配對正確！</b><br>紅：丹楓　白：蘆花　青：蒼松　綠：翠柏<br>老殘用四種顏色，把眼前的楓葉、蘆花、松柏一次寫出來。';
             quoteEl.innerHTML=''; ch.innerHTML='';
-            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓、白—梵宇僧樓、青—蒼松、綠—翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
+            pic.style.transform='scale(1.04)';
+            showTags([{x:900,y:335,t:'丹楓（火紅）'},{x:1160,y:410,t:'蘆花（雪白）'},{x:770,y:240,t:'蒼松（靛青）',c:'blue'},{x:1310,y:280,t:'翠柏（碧綠）',c:'blue'},{x:495,y:262,t:'梵宇僧樓'}]);
+            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓、白—蘆花、青—蒼松、綠—翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
         else { if(!miss){ miss=true; picked=c.c.slice(0,2)+'配'+it; } b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
       ch.appendChild(b); }); };
   render(); },
- // 倒影：低頭看
- lookdown(){ wait(); who.textContent='任務'; setFace(null); showActor(null);
-  txt.innerHTML='漁人在湖上唱歌。往下看看，湖裡有什麼？'; quoteEl.innerHTML='';
-  ch.innerHTML=''; const b=document.createElement('button'); b.type='button'; b.className='go'; b.textContent='⬇ 低頭看湖面';
-  b.addEventListener('click',e=>{ e.stopPropagation(); b.disabled=true; front.classList.add('down'); fx.className='ripple';
-    setTimeout(()=>{ txt.innerHTML='湖面像鏡子一樣，整座千佛山、寺廟和紅葉，都清清楚楚倒映在湖裡！'; ch.innerHTML=''; goBtn(); },1600); });
+ // 一聲漁唱：漁人撐船出現、唱歌、音符飄起來
+ song(){ wait(); who.textContent=''; setFace(null); showActor(null); clearTags();
+  txt.innerHTML='正在嘆賞不絕，忽聽……'; quoteEl.innerHTML=quoteHtml('忽聽一聲漁唱'); ch.innerHTML=''; setCap('忽聽一聲漁唱');
+  QF.fisher={x:1270}; pic.style.transform='scale(1.08)';
+  const sing1=()=>{ songBanner.hidden=false; QF.singing=true; duck(0.12); const d=sing(); setTimeout(()=>{ QF.singing=false; songBanner.hidden=true; duck(1); },d*1000); return d; };
+  setTimeout(()=>{ const d=sing1(); txt.innerHTML='正在嘆賞不絕，忽聽<b>一聲漁唱</b>——'; who.textContent='旁白';
+    setTimeout(()=>{ txt.innerHTML='湖上一位<b>漁人</b>撐著小船，放聲唱起漁歌。安靜的湖面上，歌聲傳得好遠好遠。';
+      ch.innerHTML=''; const again=document.createElement('button'); again.type='button'; again.className='opt'; again.style.textAlign='center'; again.textContent='🔊 再聽一次漁歌';
+      again.addEventListener('click',e=>{ e.stopPropagation(); if(!QF.singing) sing1(); }); ch.appendChild(again); goBtn(); },Math.min(d*1000,4200)); },900); },
+ // 低頭看去：湖面的波紋停下來，倒影變得像鏡子一樣清楚；再點一點找出上下兩個山
+ lookdown(){ wait(); who.textContent='任務：低頭看去'; setFace(null); showActor(null);
+  txt.innerHTML='漁歌還在湖面上迴盪。<b>低頭看去</b>，湖裡有什麼？'; quoteEl.innerHTML='<span class="qt">現在湖面還有波紋，看不清楚</span>';
+  ch.innerHTML=''; const b=document.createElement('button'); b.type='button'; b.className='go'; b.textContent='⬇ 低頭看去';
+  const steps=[
+    {t:'用手指點一點：哪裡是<b>真的千佛山</b>？',ok:(x,y)=>y>70&&y<440&&!(x<430&&y>520),tag:{x:880,y:205,t:'上頭的千佛山（真的山）'}},
+    {t:'再點一點：哪裡是湖裡的<b>倒影</b>？',ok:(x,y)=>y>480&&y<790&&!(x<430&&y>540),tag:{x:1130,y:640,t:'湖裡的倒影',c:'blue'}},
+    {t:'最後點一點：夾在兩個山中間的<b>墊子</b>（湖岸那一排白色蘆花）',ok:(x,y)=>y>385&&y<485,tag:{x:1150,y:400,t:'蘆花＝兩個山的墊子'}}];
+  let k=0, miss=false;
+  const startTaps=()=>{ quoteEl.innerHTML='<span class="qt">直接點畫面</span>'; txt.innerHTML='👆 '+steps[0].t;
+    QF.tap=(x,y)=>{ const s=steps[k]; if(!s) return;
+      if(s.ok(x,y)){ tone('pop'); addTag(s.tag); k++;
+        if(k<steps.length) txt.innerHTML='<b class="ok">對！</b>👆 '+steps[k].t;
+        else { QF.tap=null; tone('ding'); txt.innerHTML='<b class="ok">都找到了！</b>上頭是真的千佛山，湖裡是倒影，中間那一排蘆花，就像上下兩個山共用的墊子。'; quoteEl.innerHTML='';
+          record({q:'找出真的千佛山、湖中倒影、兩個山之間的蘆花墊子',o:['上：千佛山／下：倒影／中間：蘆花'],hl:'做了上下兩個山的墊子'},!miss,'點錯位置'); goBtn(); } }
+      else { miss=true; tone('bad'); toast('再找找看！'); } }; };
+  b.addEventListener('click',e=>{ e.stopPropagation(); b.disabled=true; QF.veilT=0; pic.style.transform='scale(1)'; setCap('低頭看去　湖面澄淨得同鏡子一般'); tone('chime');
+    txt.innerHTML='波紋慢慢停了下來……'; setTimeout(()=>{ txt.innerHTML='湖面<b>澄淨得同鏡子一般</b>！整座千佛山都倒映在湖裡。'; ch.innerHTML=''; setTimeout(startTaps,1600); },2600); });
   ch.appendChild(b); },
  // 蘆花：把太陽拉下來，白色蘆花染成粉紅
  sunset(){ wait(); who.textContent='任務'; setFace(null); showActor(null);
@@ -810,13 +989,18 @@ const TASKS={
   r.addEventListener('click',e=>e.stopPropagation());
   r.addEventListener('input',()=>{ const v=r.value/100; draw(v);
     if(v>0.95&&!fin){ fin=true; r.disabled=true; tone('ding'); txt.innerHTML='白色的蘆花映著斜陽，變成一片<b class="pink">粉紅色</b>，像一條粉紅絨毯！'; goBtn(); } }); },
- // 鐵公祠前：自動轉身朝南的短動畫
- turn(){ wait(); who.textContent=''; setFace(null); showActor(null); vn.classList.add('clear');
-  txt.innerHTML='老殘站在鐵公祠前，轉過身，朝南望去……'; quoteEl.innerHTML='<span class="qt">看左下角的羅盤：從北轉向南</span>'; ch.innerHTML='';
-  mode='turn'; P.set(50,0.3,27); laoPos.set(53,0.3,27.5); target=null; turnT=0; turnFrom=Math.atan2(60-50,40-27); first=true;
+ // 鐵公祠前：先看到兩人面向祠堂 → 原地轉身（腳邊有轉圈箭頭）→ 鏡頭轉到身後，望向對面的千佛山
+ turn(){ wait(); who.textContent='旁白'; setFace(null); showActor(null); vn.classList.add('clear'); document.body.classList.remove('vnfull');
+  txt.innerHTML='老殘站在鐵公祠前，面向祠堂……'; quoteEl.innerHTML='<span class="qt">看左上角的羅盤：橘色箭頭是你面向的方向</span>'; ch.innerHTML='';
+  setCap('① 站在鐵公祠前');
+  mode='turn'; P.set(50,0.3,27); laoPos.set(52.6,0.3,26.2); target=null; turnT=0; turnFrom=Math.atan2(60-50,40-27); first=true;
   scene.fog.near=180; scene.fog.far=900;
-  setTimeout(()=>{ tone('song'); },2600);
-  setTimeout(()=>{ mode='lake'; scene.fog.near=80; scene.fog.far=340; P.set(52,0.3,30); compassEl.style.transform=''; done(); },4800); },
+  // 字幕跟著動畫的進度出現（用動畫時間，不用計時器，慢的平板也不會對不上）
+  turnCues=[[1.7,()=>{ setCap('② 回轉身子 ↻'); txt.innerHTML='老殘<b>回轉身子</b>，背對祠堂，面朝<b>南方</b>……'; tone('pop'); }],
+   [4.0,()=>{ setCap('③ 朝南一望：對面是千佛山'); txt.innerHTML='<b>朝南一望</b>——隔著大明湖，對面就是<b>千佛山</b>！'; tone('chime'); }],
+   [6.2,()=>{ const b=document.createElement('button'); b.type='button'; b.className='go'; b.textContent='走近一點看千佛山 ▶';
+    b.addEventListener('click',e=>{ e.stopPropagation(); mode='lake'; scene.fog.near=80; scene.fog.far=340; P.set(52,0.3,30); turnRing.visible=false; lao.userData.arm.rotation.x=0; compassEl.style.transform=''; done(); });
+    ch.appendChild(b); b.focus({preventScroll:true}); }]]; },
  // 古水仙祠：對聯掛回原處
  hang(){ wait(); who.textContent='任務'; setFace(null); showActor(null);
   const C=[{t:'歷下此亭古，濟南名士多',p:'歷下亭'},{t:'四面荷花三面柳，一城山色半城湖',p:'鐵公祠大門'},{t:'一盞寒泉薦秋菊，三更畫舫穿藕花',p:'古水仙祠'}];
@@ -838,10 +1022,10 @@ const TASKS={
       b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
         if(o===S[k].a){ tone('ding'); txt.innerHTML='<b class="ok">對！</b>這是'+S[k].d+'的聲音。'; k++; ch.innerHTML='';
           if(k<2){ const n=document.createElement('button'); n.type='button'; n.className='go'; n.textContent='下一個聲音 ▶'; n.addEventListener('click',ev=>{ev.stopPropagation(); render();}); ch.appendChild(n); }
-          else { txt.innerHTML+='<br>寫聲音，是<b>聽覺摹寫</b>。'; record({q:'聽聲音：荷葉擦船、水鳥飛走',o:['嗤嗤價響、格格價飛'],hl:'擦得船嗤嗤價響'},!miss,'選錯聲音'); goBtn(); } }
+          else { duck(1); txt.innerHTML+='<br>寫聲音，是<b>聽覺摹寫</b>。'; record({q:'聽聲音：荷葉擦船、水鳥飛走',o:['嗤嗤價響、格格價飛'],hl:'擦得船嗤嗤價響'},!miss,'選錯聲音'); goBtn(); } }
         else { miss=true; b.disabled=true; b.classList.add('wrong'); tone('bad'); } });
       ch.appendChild(b); }); };
-  render(); tone(S[0].k); },
+  duck(0.2); render(); tone(S[0].k); },
  // 荷花叢：接蓮蓬（說明清楚、上方顯示倒數和數量）
  lotus(){ wait(); who.textContent='小遊戲：接蓮蓬'; setFace(null); showActor(null);
   txt.innerHTML='「那已老的蓮蓬不斷的蹦到船窗裡面來。」<br><b>玩法：</b>按「開始」後，蓮蓬會從下面蹦上來，<b>用手指點一下蓮蓬</b>就接住了。15 秒內接到 8 個就過關！';
@@ -891,19 +1075,51 @@ const TASKS={
 function checkStations(){ if(talking) return;
   const id=order[step]; if(!id) return;
   const s= id==='end' ? stations[0] : stations.find(s=>s.id===id); if(!s) return;
-  if(Math.hypot(P.x-s.x,P.z-s.z)<s.r){ visited[s.id]=1; step++; goalNow=null; play(SCENES[id],updHint); updHint(); } }
+  if(Math.hypot(P.x-s.x,P.z-s.z)<s.r){ visited[s.id]=1; step++; goalNow=null; play(SCENES[id],()=>{ updHint(); saveGame(); }); updHint(); } }
 
 // ---------- 結局：《明湖長卷》＋複習 ----------
-function showEnd(){ const e=document.getElementById('end'); const first=answered.filter(a=>a.first).length;
-  let h='<h2>《明湖長卷》完成了！</h2><div class="scroll">'+CARDS.map(c=>'<figure style="background-image:url(\''+BG[CARD_BG[c]]+'\')"><figcaption>'+c+'</figcaption></figure>').join('')+'</div>';
-  h+='<p class="score">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個。</p>';
-  const bad=answered.filter(a=>!a.first);
+function showEnd(){ saveGame(true); const e=document.getElementById('end'); const first=answered.filter(a=>a.first).length;
+  const bad=answered.filter(a=>!a.first), redo=bad.filter(a=>a.q.o.length>1);
+  let h='<h2>《明湖長卷》完成了！</h2><div class="longscroll"><p style="margin:10px;color:#6b5d4b">長卷繪製中……</p></div><p style="font-size:13px;color:#6b5d4b;margin:4px 0 0">👉 由左到右，照遊覽的順序；長卷可以左右滑動，<b>長按圖片</b>可以存到相簿。</p>';
+  h+='<p class="score">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個。'+(CH.ever?'　🔥 曾進入挑戰模式':'')+'</p>';
   if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
   else h+='<p>全部第一次就答對，太厲害了！</p>';
-  h+='<div class="endbtns"><button id="readAll" type="button">📜 看全文</button><button id="again" type="button">再玩一次</button></div>';
+  h+='<div class="retryBox"></div>';
+  h+='<div class="endbtns">'+(redo.length?'<button id="redoBtn" type="button">✏️ 錯題再挑戰（'+redo.length+' 題）</button>':'')+'<button id="readAll" type="button">📜 看全文</button><button id="again" type="button">重新玩一次</button></div>';
   e.innerHTML='<div class="card">'+h+'</div>'; e.hidden=false;
-  document.getElementById('again').addEventListener('click',()=>location.reload());
-  document.getElementById('readAll').addEventListener('click',()=>openText(null)); }
+  setTimeout(()=>drawLongScroll(e.querySelector('.longscroll'),false),60);
+  { const ag=document.getElementById('again'); let armed=false; ag.addEventListener('click',()=>{ if(!armed){ armed=true; ag.textContent='再按一次就重新開始'; setTimeout(()=>{ armed=false; ag.textContent='重新玩一次'; },3000); return; } clearSave(); location.reload(); }); }
+  document.getElementById('readAll').addEventListener('click',()=>openText(null));
+  const rb=document.getElementById('redoBtn'); if(rb) rb.addEventListener('click',()=>{ rb.remove(); runRetry(e.querySelector('.retryBox'),redo.map(a=>a.q)); }); }
+// 錯題再挑戰：一題一題重答，全部訂正完成，長卷蓋上「訂正完成」的印章
+function runRetry(box,list){ let k=0; const one=()=>{ const q=list[k];
+    box.innerHTML='<div class="retry"><b>✏️ 錯題再挑戰 '+(k+1)+' / '+list.length+'</b><div style="font-size:18px;margin:6px 0">'+esc(q.q)+'</div><div class="ops"></div><div class="msg"></div></div>';
+    const ops=box.querySelector('.ops'), msg=box.querySelector('.msg');
+    shuffle(q.o.map((o,i)=>({o,ok:!i}))).forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.className='opt'; b.textContent=c.o;
+      b.addEventListener('click',()=>{ if(b.disabled) return;
+        if(c.ok){ [...ops.children].forEach(x=>x.disabled=true); b.classList.add('right'); tone('ding'); msg.innerHTML='<b style="color:#2f7a4a">答對了！</b>'+esc(q.why||'');
+          const n=document.createElement('button'); n.type='button'; n.className='opt'; n.style.textAlign='center'; n.textContent=k+1<list.length?'下一題 ▶':'完成 ✔'; n.addEventListener('click',()=>{ k++; if(k<list.length) one(); else done1(); }); msg.appendChild(n); }
+        else { b.disabled=true; b.classList.add('wrong'); tone('bad'); msg.innerHTML='<span class="tip">再想想！線索：「'+esc(q.hl)+'」</span>'; } }); ops.appendChild(b); }); };
+  const done1=()=>{ tone('chime'); box.innerHTML='<div class="retry"><b style="color:#2f7a4a">🎉 錯題全部訂正完成！</b>長卷蓋上了「訂正完成」的印章。</div>'; drawLongScroll(document.querySelector('#end .longscroll'),true); };
+  one(); }
+// 《明湖長卷》：八段景色接成一張由左往右看的長卷（照遊覽順序），可以長按存到相簿
+function drawLongScroll(holder,fixed){ if(!holder) return; const PW=560, PH=360, G=34, END=150, H=PH+170, N=CARDS.length, W=END*2+N*PW+(N-1)*G;
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  x.fillStyle='#efe3c4'; x.fillRect(0,0,W,H); for(let i=0;i<W;i+=6){ x.fillStyle='rgba(180,150,100,'+(0.04+0.04*Math.sin(i*0.37))+')'; x.fillRect(i,0,2,H); }
+  const roll=rx=>{ const g=x.createLinearGradient(rx,0,rx+46,0); g.addColorStop(0,'#3a2216'); g.addColorStop(.5,'#8a5a34'); g.addColorStop(1,'#3a2216'); x.fillStyle=g; x.fillRect(rx,0,46,H); x.fillStyle='#c9a24a'; x.fillRect(rx+8,-4,30,14); x.fillRect(rx+8,H-10,30,14); };
+  roll(0); roll(W-46);
+  x.textAlign='center'; x.fillStyle='#2f2a24'; x.font='bold 64px "PingFang TC","Noto Serif TC",serif';
+  [...'明湖長卷'].forEach((ch,i)=>x.fillText(ch,END/2+12,110+i*76));
+  x.fillStyle='#b23a2a'; x.fillRect(END/2-16,H-120,56,56); x.fillStyle='#f6e3b4'; x.font='bold 22px serif'; x.fillText('老殘',END/2+12,H-96); x.fillText('遊記',END/2+12,H-72);
+  x.fillStyle='#4a3a2a'; x.font='28px "PingFang TC","Noto Serif TC",serif'; [...'小藥童　敬繪'].forEach((ch,i)=>x.fillText(ch,W-END/2-16,90+i*36));
+  CARDS.forEach((n,i)=>{ const px=END+i*(PW+G), py=60; const im=IMG[CARD_BG[n]];
+    x.fillStyle='#d9ccaa'; x.fillRect(px-6,py-6,PW+12,PH+12);
+    if(gotCards[n] && im && im.naturalWidth){ const r=PW/PH, ir=im.naturalWidth/im.naturalHeight; let sw=im.naturalWidth, sh=im.naturalHeight, sx=0, sy=0; if(ir>r){ sw=sh*r; sx=(im.naturalWidth-sw)/2; } else { sh=sw/r; sy=(im.naturalHeight-sh)/2; }
+      if(n==='千佛山'||n==='明湖倒影'){ sh=im.naturalHeight*0.52; sw=sh*r; sx=(im.naturalWidth-sw)/2; sy= n==='千佛山' ? im.naturalHeight*0.03 : im.naturalHeight*0.47; } /* 同一張圖：千佛山取上半的山，倒影取下半的湖面 */ x.drawImage(im,sx,sy,sw,sh,px,py,PW,PH); }
+    else { x.fillStyle='#e9dfc6'; x.fillRect(px,py,PW,PH); x.fillStyle='#9a8a6a'; x.font='26px serif'; x.fillText('（這一段還沒收集）',px+PW/2,py+PH/2); }
+    x.fillStyle='#2f2a24'; x.font='bold 34px "PingFang TC","Noto Serif TC",serif'; x.fillText(n,px+PW/2,py+PH+56); });
+  if(fixed){ x.save(); x.translate(W-END-130,H-62); x.rotate(-0.15); x.strokeStyle='#c0392b'; x.lineWidth=6; x.strokeRect(-76,-38,152,76); x.fillStyle='#c0392b'; x.font='bold 32px "PingFang TC","Noto Serif TC",serif'; x.fillText('訂正完成',0,12); x.restore(); }
+  const img=new Image(); img.alt='明湖長卷'; img.src=c.toDataURL('image/jpeg',0.86); img.onload=()=>{ holder.scrollLeft=0; }; holder.innerHTML=''; holder.appendChild(img); }
 
 // ---------- 鏡頭 ----------
 let cineMode=null; const camPos=new T.Vector3(), camLook=new T.Vector3();
@@ -916,7 +1132,8 @@ const cines={
   shui:{pos:new T.Vector3(14,8,36), look:new T.Vector3(14,3,52)} };
 function cine(m){ cineMode=m; }
 function desiredCam(){ if(cineMode){ return cines[cineMode]; }
-  if(mode==='turn'){ const yaw=heading; return {pos:new T.Vector3(P.x-Math.sin(yaw)*15, 9, P.z-Math.cos(yaw)*15), look:new T.Vector3(P.x+Math.sin(yaw)*80, 14, P.z+Math.cos(yaw)*80)}; }
+  if(mode==='turn'){ if(turnT<4) return {pos:new T.Vector3(P.x+4, 11, P.z-21), look:new T.Vector3(P.x+1.5, 3.5, P.z+4)};   // 從南邊看兩人：先看到背影，轉身後看到正面
+    return {pos:new T.Vector3(P.x+4.5, 4.6, P.z+9), look:new T.Vector3(P.x-6, 15, P.z-170)}; }                                   // 鏡頭繞到身後，跟著他們朝南望
   if(mode==='inner') return {pos:new T.Vector3(P.x, P.y+22, P.z-22), look:new T.Vector3(P.x, P.y, P.z+5)};
   return {pos:new T.Vector3(P.x, P.y+34, P.z-36), look:new T.Vector3(P.x, P.y, P.z+10)}; }
 
@@ -938,7 +1155,8 @@ canvas.addEventListener('pointerup',e=>{ if(!down) return; const moved=Math.hypo
   const hit=new T.Vector3(); if(ray.ray.intersectPlane(plane,hit)) setTarget(hit.x,hit.z); });
 
 // ---------- 開始 ----------
-document.getElementById('go').addEventListener('click',()=>{ document.getElementById('start').hidden=true; ac(); play(SCENES.pro,()=>{ step=0; updHint(); }); updHint(); });
+document.getElementById('go').addEventListener('click',()=>{ document.getElementById('start').hidden=true; clearSave(); ac(); musicStart();
+  playIntro(()=>{ play(SCENES.pro,()=>{ step=0; updHint(); saveGame(); }); updHint(); }); });
 
 function resize(){ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   water.getRenderTarget && water.getRenderTarget().setSize(Math.round(innerWidth*DPR*0.6),Math.round(innerHeight*DPR*0.6)); }
@@ -1038,22 +1256,28 @@ ibox(18,1,10,'#cbbf9f',6,0.8,26); ibox(16,6,8,'#b5503c',6,4.3,26);
 { const r=hipRoof(18,10,3.6,'#2f4f5e'); r.position.set(6,9.1,26); inner.add(r); }
 ibox(3,4.2,0.3,'#4a2c20',6,3.4,21.9);
 sign('鐵公享堂',false,'#2f4652','#f3dd9a',6.5,6,6.6,21.8,Math.PI);
-// 荷池（在大門往東）
-const POND={x1:-26,x2:-4,z1:2,z2:22};
-{ const p=new T.Mesh(new T.PlaneGeometry(22,20).rotateX(-Math.PI/2),lam('#5f9fa0')); p.position.set(-15,0.36,12); inner.add(p);
-  const rim=new T.Mesh(new T.PlaneGeometry(23.6,21.6).rotateX(-Math.PI/2),lam('#8f8a7a')); rim.position.set(-15,0.34,12); inner.add(rim);
-  const L=[],F=[]; for(let i=0;i<70;i++){ const x=-25+rnd()*20, z=3+rnd()*18; (rnd()<.15?F:L).push([x,0.38,z]); }
-  const lg=new T.CircleGeometry(0.9,9); lg.rotateX(-Math.PI/2);
-  const im=new T.InstancedMesh(lg,lam('#4c7a5c'),L.length), o=new T.Object3D(); L.forEach((p,i)=>{o.position.set(...p); o.scale.setScalar(.8+rnd()*.6); o.updateMatrix(); im.setMatrixAt(i,o.matrix);}); inner.add(im);
-  const fg=new T.ConeGeometry(0.4,0.7,6); fg.rotateX(Math.PI); fg.translate(0,0.6,0);
-  const fm=new T.InstancedMesh(fg,lam('#e9a6b6'),F.length); F.forEach((p,i)=>{o.position.set(...p); o.scale.setScalar(1); o.updateMatrix(); fm.setMatrixAt(i,o.matrix);}); inner.add(fm); }
-// 曲折的迴廊（從大門東側沿荷池南邊，彎彎曲曲到荷池東面）
-const CORR=[[1,-3],[-6,-3],[-9,-5.5],[-16,-5.5],[-19,-3],[-27,-3],[-29.5,-0.5],[-29.5,9]];
+// 荷池（在享堂往東），池中開滿荷花
+const POND={x1:-28,x2:-2,z1:0,z2:24};
+// 曲折的迴廊：從荷池西岸，彎彎曲曲穿過荷池「中間」，到荷池東面
+const CORR=[[1,12],[-4.5,12],[-8,17],[-13.5,17],[-16.5,8],[-21.5,8],[-24.5,12.5],[-31,12.5]];
+function corrDist(x,z){ let b=1e9; for(let i=0;i<CORR.length-1;i++){ const [x1,z1]=CORR[i],[x2,z2]=CORR[i+1], dx=x2-x1, dz=z2-z1, L2=dx*dx+dz*dz;
+  const u=Math.max(0,Math.min(1,((x-x1)*dx+(z-z1)*dz)/L2)); b=Math.min(b,Math.hypot(x-x1-u*dx,z-z1-u*dz)); } return b; }
+function inPond(x,z){ return x>POND.x1&&x<POND.x2&&z>POND.z1&&z<POND.z2; }
+function innerY(x,z){ return corrDist(x,z)<1.6&&x<1.5&&x>-31.5?0.78:0.3; }
+{ const p=new T.Mesh(new T.PlaneGeometry(26,24).rotateX(-Math.PI/2),lam('#5f9fa0')); p.position.set(-15,0.36,12); inner.add(p);
+  const rim=new T.Mesh(new T.PlaneGeometry(27.6,25.6).rotateX(-Math.PI/2),lam('#8f8a7a')); rim.position.set(-15,0.34,12); inner.add(rim);
+  const L=[],U=[],F=[]; for(let i=0;i<420&&(L.length+F.length)<260;i++){ const x=POND.x1+0.8+rnd()*24.4, z=POND.z1+0.8+rnd()*22.4; if(corrDist(x,z)<2.4) continue; const r=rnd(); (r<.13?F:r<.3?U:L).push([x,0.38,z]); }
+  const lg=new T.CircleGeometry(0.95,10); lg.rotateX(-Math.PI/2);
+  const im=new T.InstancedMesh(lg,lam('#4c7a5c'),L.length), o=new T.Object3D(); L.forEach((p,i)=>{o.position.set(...p); o.rotation.set(0,rnd()*6,0); o.scale.setScalar(.8+rnd()*.7); o.updateMatrix(); im.setMatrixAt(i,o.matrix);}); inner.add(im);
+  const ug=new T.CircleGeometry(1.0,10); ug.rotateX(-Math.PI/2+0.35); ug.translate(0,1.1,0);   // 挺出水面的荷葉
+  inst(ug,new T.MeshLambertMaterial({color:'#5f9258',side:T.DoubleSide}),U,1,false,inner);
+  lotusFlowers(inner,F,0.68); }
 for(let i=0;i<CORR.length-1;i++){ const [x1,z1]=CORR[i],[x2,z2]=CORR[i+1]; const cx=(x1+x2)/2, cz=(z1+z2)/2, len=Math.hypot(x2-x1,z2-z1), ang=Math.atan2(x2-x1,z2-z1);
-  const fl=new T.Mesh(new T.PlaneGeometry(2.8,len+1).rotateX(-Math.PI/2),lam('#b08a5a')); fl.position.set(cx,0.37,cz); fl.rotation.y=ang; inner.add(fl);
-  const rf=new T.Mesh(new T.BoxGeometry(3.6,0.25,len+1.2),new T.MeshLambertMaterial({color:'#2f4f5e',transparent:true,opacity:.38,depthWrite:false})); rf.position.set(cx,3.9,cz); rf.rotation.y=ang; inner.add(rf); }
-CORR.forEach(([x,z],i)=>{ const a=i<CORR.length-1?Math.atan2(CORR[i+1][0]-x,CORR[i+1][1]-z):Math.atan2(x-CORR[i-1][0],z-CORR[i-1][1]); const px=Math.cos(a)*1.4, pz=-Math.sin(a)*1.4;
-  ibox(0.35,3.6,0.35,'#a8432f',x+px,2.1,z+pz); ibox(0.35,3.6,0.35,'#a8432f',x-px,2.1,z-pz); });
+  const fl=new T.Mesh(new T.BoxGeometry(2.8,0.3,len+2.8),lam('#b08a5a')); fl.position.set(cx,0.6,cz); fl.rotation.y=ang; inner.add(fl);
+  [-1.35,1.35].forEach(s=>{ const rl=new T.Mesh(new T.BoxGeometry(0.14,0.14,len+0.4),lam('#a8432f')); rl.position.set(cx+Math.cos(ang)*s,1.35,cz-Math.sin(ang)*s); rl.rotation.y=ang; inner.add(rl); });
+  const rf=new T.Mesh(new T.BoxGeometry(3.8,0.3,len+3.2),new T.MeshLambertMaterial({color:'#2f4f5e',transparent:true,opacity:.32,depthWrite:false})); rf.position.set(cx,4.3,cz); rf.rotation.y=ang; inner.add(rf); }
+CORR.forEach(([x,z],i)=>{ const a=i<CORR.length-1?Math.atan2(CORR[i+1][0]-x,CORR[i+1][1]-z):Math.atan2(x-CORR[i-1][0],z-CORR[i-1][1]); const px=Math.cos(a)*1.35, pz=-Math.sin(a)*1.35;
+  ibox(0.35,3.6,0.35,'#a8432f',x+px,2.5,z+pz); ibox(0.35,3.6,0.35,'#a8432f',x-px,2.5,z-pz); });
 // 圓門（東牆上）
 { const ring=new T.Mesh(new T.TorusGeometry(2.5,0.75,10,32),lam('#f4ecd8')); ring.position.set(-34,2.9,12); ring.rotation.y=Math.PI/2; inner.add(ring);
   ibox(1,1.6,4.8,WALL,-34,0.3+WH-0.5,12); }
@@ -1074,8 +1298,9 @@ ibox(2.6,1,1.6,'#7f8a86',-46,0.8,5.5);
   W.forEach(([x,z],i)=>{ o.position.set(x,0.3,z); o.updateMatrix(); t1.setMatrixAt(i,o.matrix); t2.setMatrixAt(i,o.matrix); }); inner.add(t1,t2); }
 // 碰撞：牆、享堂、荷池、水仙祠、石桌、湖
 const SOLID=[[20,-8.5,9,-7.5],[3,-8.5,-34,-7.5],[20,33.5,-34,34.5],[19.5,-8,20.5,34],[-34.5,-8,-33.5,9.6],[-34.5,14.4,-33.5,34],
-  [-3,21,15,31],[POND.x1,POND.z1,POND.x2,POND.z2],[-52.5,9.5,-39.5,14.5],[-47.3,4.7,-44.7,6.3]];
+  [-3,21,15,31],[-52.5,9.5,-39.5,14.5],[-47.3,4.7,-44.7,6.3]];
 function innerBlocked(x,z){ if(z<-19||z>40||x<-56||x>26) return true;
+  if(x>POND.x1-0.7&&x<POND.x2+0.7&&z>POND.z1-0.7&&z<POND.z2+0.7&&corrDist(x,z)>1.25) return true;   // 荷池：只能走迴廊
   const pad=0.7; return SOLID.some(([a,b,c,d])=>x>Math.min(a,c)-pad&&x<Math.max(a,c)+pad&&z>Math.min(b,d)-pad&&z<Math.max(b,d)+pad); }
 // 一站一站的探索點
 const INNER=[
@@ -1083,6 +1308,8 @@ const INNER=[
    {w:'旁白',t:'老殘回轉身來，看那大門裡面楹柱上有副對聯。',hl:'看那大門裡面楹柱上有副對聯'},
    {w:'小藥童',t:'先生，柱子上寫著什麼？'},
    {w:'老殘',t:'四面荷花三面柳，一城山色半城湖。',hl:'四面荷花三面柳，一城山色半城湖'},
+   {w:'小藥童',t:'「一城山色」……這個山，我剛剛好像看過！'},
+   {quiz:'gateQF',n:1},
    {quiz:'gate',n:1},
    {w:'老殘',t:'真正不錯！我們進去看看。',hl:'真正不錯'}]},
  {name:'享堂', x:6,z:17.5,r:4.2, goal:'進大門，往北走到正面的建築', steps:[
@@ -1090,11 +1317,11 @@ const INNER=[
    {quiz:'hall',n:1},
    {w:'老殘',t:'課文接著說：「朝東便是一個荷池。」你看看羅盤，荷池在哪一邊？'},
    {quiz:'east',n:1}]},
- {name:'荷池', x:-2,z:11,r:3.6, goal:'看羅盤，往東走到荷池', steps:[
+ {name:'荷池', x:2,z:12,r:3.6, goal:'看左上角的羅盤，往東走到荷池', steps:[
    {w:'旁白',t:'朝東便是一個荷池。',hl:'朝東便是一個荷池'},
-   {w:'小藥童',t:'荷花池好大！要怎麼走到另一邊？'},
-   {w:'老殘',t:'池子南邊有一條彎彎曲曲的迴廊，順著走過去。'}]},
- {name:'迴廊', x:-17.5,z:-5.5,r:3.2, goal:'走上荷池南邊的迴廊，往東走', steps:[
+   {w:'小藥童',t:'荷花池好大，還開著粉紅色、白色的荷花！要怎麼走到另一邊？'},
+   {w:'老殘',t:'你看，池子中間有一條彎彎曲曲的迴廊，順著走過去。'}]},
+ {name:'迴廊', x:-15,z:12.5,r:3, goal:'走上荷池中間的迴廊，彎彎曲曲往東走', steps:[
    {w:'旁白',t:'繞著曲折的迴廊，到了荷池東面……',hl:'繞著曲折的迴廊'},
    {quiz:'corr',n:1}]},
  {name:'圓門', x:-31,z:12,r:3.4, goal:'找到荷池東面的圓門', steps:[
@@ -1103,24 +1330,24 @@ const INNER=[
  {name:'三間舊房', x:-42,z:4,r:3.6, goal:'穿過圓門，看看東邊的三間舊房', final:true}];
 let innerStep=0;
 const innerLabels=INNER.map(w=>{ const el=document.createElement('div'); el.className='label'; el.textContent=w.name; el.style.display='none'; labelBox.appendChild(el); return el; });
-function enterInner(){ mode='inner'; inner.add(kid,lao,beacon,arrow); boat.visible=false;
+function enterInner(){ trail.length=0; mode='inner'; inner.add(kid,lao,beacon,arrow); boat.visible=false;
   P.set(6,0.3,-16); laoPos.set(8.5,0.3,-17); heading=0; target=null; innerStep=0; step=order.indexOf('inner');
   stations.forEach(s=>s.el.style.display='none'); goalNow=INNER[0].goal; first=true; updHint(); toast('走進鐵公祠：用方向鍵或點地面走路'); }
-function exitInner(){ mode='lake'; scene.add(kid,lao,beacon,arrow); innerLabels.forEach(e=>e.style.display='none');
+function exitInner(){ trail.length=0; mode='lake'; scene.add(kid,lao,beacon,arrow); innerLabels.forEach(e=>e.style.display='none');
   P.set(42,0.3,16); laoPos.set(44,0.3,15); heading=Math.PI; target=null; step=order.indexOf('he'); goalNow=GOALS.he; first=true; updHint(); }
 function checkInner(){ if(talking) return; const w=INNER[innerStep]; if(!w) return;
   if(Math.hypot(P.x-w.x,P.z-w.z)<w.r){ innerStep++; const nxt=INNER[innerStep];
-    if(w.final){ play(SCENES.shui,updHint); goalNow=null; }
-    else play(w.steps.concat(nxt?[{igoal:nxt.goal}]:[]),updHint,true);
+    if(w.final){ play(SCENES.shui,()=>{ updHint(); saveGame(); }); goalNow=null; }
+    else play(w.steps.concat(nxt?[{igoal:nxt.goal}]:[]),()=>{ updHint(); saveGame(); },true);
     updHint(); } }
 
 
 // ---------- 湖上小遊戲：撈起課文裡的方位字 ----------
 const WORDSETS={
- lixia:{w:'朝北不遠',a:[-30,-30],b:[-6,0], q:{q:'撈到「朝北不遠」。從鵲華橋到歷下亭，要往哪個方向划？',o:['北','南','東','西'],hl:'朝北不遠，便到歷下亭前',why:'「朝北不遠，便到歷下亭前」，歷下亭在鵲華橋的北邊。'}},
- tie:{w:'向西盪去',a:[2,2],b:[44,24], q:{q:'撈到「向西盪去」。這裡的「盪」是什麼意思？',o:['划船，讓船在水上前進','盪鞦韆','搖晃不穩','掃除乾淨'],hl:'復行下船，向西盪去',why:'「盪起雙槳」「向西盪去」，盪都是划船前進。'}},
- he:{w:'盪到歷下亭的後面',a:[40,16],b:[0,22], q:{q:'撈到「盪到歷下亭的後面」。到了那裡，是什麼把船夾住？',o:['兩邊的荷葉荷花','兩岸的柳樹','一層蘆葦','別的遊船'],hl:'盪到歷下亭的後面',why:'「兩邊荷葉荷花將船夾住。」'}},
- end:{w:'到了鵲華橋畔',a:[-8,18],b:[-28,-30], q:{q:'撈到「到了鵲華橋畔」。「畔」是什麼意思？',o:['旁邊、邊上','橋的下面','對面','裡面'],hl:'船已到了鵲華橋畔了',why:'畔是旁邊，鵲華橋畔就是鵲華橋邊。'}}};
+ lixia:{w:'朝北不遠',a:[-30,-30],b:[-6,0], q:MH.WORDQ.lixia},
+ tie:{w:'向西盪去',a:[2,2],b:[44,24], q:MH.WORDQ.tie},
+ he:{w:'盪到歷下亭的後面',a:[40,16],b:[0,22], q:MH.WORDQ.he},
+ end:{w:'到了鵲華橋畔',a:[-8,18],b:[-28,-30], q:MH.WORDQ.end}};
 const wordbar=document.getElementById('wordbar'); let tokens=[], wordKey=null, wordGot=0;
 function charTex(ch){ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
   x.fillStyle='#4c7a5c'; x.beginPath(); x.arc(64,64,58,0.25,Math.PI*2-0.05); x.lineTo(64,64); x.fill(); x.strokeStyle='#2f4f3a'; x.lineWidth=4; x.stroke();
@@ -1148,12 +1375,15 @@ addEventListener('keyup',e=>{ const k=KEYMAP[e.code]; if(k) keys[k]=0; });
 document.querySelectorAll('#pad button').forEach(b=>{ const k=KEYMAP[b.dataset.k];
   b.addEventListener('pointerdown',e=>{ e.preventDefault(); keys[k]=1; b.setPointerCapture&&b.setPointerCapture(e.pointerId); });
   ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0)); });
-let mode='lake', turnT=0, turnFrom=0;
+let mode='lake', turnT=0, turnFrom=0, turnCues=[];
 const compassEl=document.querySelector('#compass svg'), faceEl=document.querySelector('#compass #facing');
 
 // ---------- 主迴圈 ----------
-const clock=new T.Clock(); const tmp=new T.Vector3(); let first=true;
-function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
+const clock=new T.Clock(); const tmp=new T.Vector3(); let first=true; const trail=[]; const FPS={n:0,t:0,done:false};
+function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elapsedTime;
+  if(!FPS.done && !document.hidden && !(talking&&!vn.classList.contains('clear')) && raw<0.5){ FPS.n++; FPS.t+=raw;
+    if(FPS.n>=120){ FPS.done=true; if(FPS.t/FPS.n>1/30 && DPR>1.2){ DPR=1.2; renderer.setPixelRatio(DPR); resize(); inkResize(); } } }
+  updLost(dt);
   // 移動
   let moving=false;
   const kx=(keys.l?1:0)-(keys.r?1:0), kz=(keys.u?1:0)-(keys.d?1:0);
@@ -1168,24 +1398,30 @@ function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
   inBoat=mode!=='inner'&&isWater(P.x,P.z);
   walkPhase+= moving? dt*10 : 0;
   // 小藥童
-  kid.position.set(P.x, inBoat?0.55:0.3, P.z); kid.rotation.y=heading;
+  kid.position.set(P.x, inBoat?0.55:(mode==='inner'?innerY(P.x,P.z):0.3), P.z); kid.rotation.y=heading;
   const sw=moving&&!inBoat?Math.sin(walkPhase)*0.35:0; kid.userData.legL.rotation.x=sw; kid.userData.legR.rotation.x=-sw; kid.userData.body.position.y=0.85*0.82+(moving&&!inBoat?Math.abs(Math.sin(walkPhase))*0.06:0);
   // 老殘：走路時跟在後面，坐船時坐在船尾
   if(inBoat){ laoPos.set(P.x-Math.sin(heading)*2.2, 0.55, P.z-Math.cos(heading)*2.2); lao.rotation.y=heading; }
-  else { tmp.subVectors(P,laoPos); tmp.y=0; const d=tmp.length(); if(d>2.6){ tmp.normalize(); laoPos.x+=tmp.x*(d-2.6)*Math.min(1,dt*6); laoPos.z+=tmp.z*(d-2.6)*Math.min(1,dt*6); lao.rotation.y=Math.atan2(tmp.x,tmp.z); } laoPos.y=0.3; }
+  else { const lt=trail[trail.length-1]; if(!lt||Math.hypot(P.x-lt[0],P.z-lt[1])>0.35){ trail.push([P.x,P.z]); if(trail.length>90) trail.shift(); }
+    if(Math.hypot(P.x-laoPos.x,P.z-laoPos.z)>9){ laoPos.set(P.x-Math.sin(heading)*2.6,0.3,P.z-Math.cos(heading)*2.6); trail.length=0; }
+    let acc=0, px=P.x, pz=P.z, tx=null, tz=null; for(let i=trail.length-1;i>=0;i--){ acc+=Math.hypot(trail[i][0]-px,trail[i][1]-pz); px=trail[i][0]; pz=trail[i][1]; if(acc>=2.6){ tx=px; tz=pz; break; } }
+    if(tx!==null){ const dx=tx-laoPos.x, dz=tz-laoPos.z, d=Math.hypot(dx,dz); if(d>0.05){ const k=Math.min(1,dt*6); laoPos.x+=dx*k; laoPos.z+=dz*k; lao.rotation.y=Math.atan2(dx,dz); } }
+    laoPos.y=mode==='inner'?innerY(laoPos.x,laoPos.z):0.3; }
   lao.position.copy(laoPos); const lsw=(moving&&!inBoat)?Math.sin(walkPhase+1)*0.3:0; lao.userData.legL.rotation.x=lsw; lao.userData.legR.rotation.x=-lsw;
   // 船
   boat.visible=inBoat; if(inBoat){ boat.position.set(P.x-Math.sin(heading)*0.9, 0.05+Math.sin(t*2)*0.06, P.z-Math.cos(heading)*0.9); boat.rotation.y=heading; boat.rotation.z=Math.sin(t*1.6)*0.03; boat.userData.oar.rotation.x=moving?Math.sin(t*5)*0.5:0; }
   // 水鳥
   for(let i=birds.length-1;i>=0;i--){ const b=birds[i]; b.userData.life+=dt; b.position.addScaledVector(b.userData.v,dt); b.userData.p+=dt*14; const f=Math.sin(b.userData.p)*0.7; b.userData.wl.rotation.z=f; b.userData.wr.rotation.z=-f; if(b.userData.life>6){ scene.remove(b); birds.splice(i,1);} }
   // 鐵公祠前轉身：鏡頭和人物一起從北慢慢轉向南
-  if(mode==='turn'){ turnT+=dt; const u=Math.min(1,Math.max(0,(turnT-0.6)/2.6)), e=u*u*(3-2*u); const yaw=turnFrom+(Math.PI-turnFrom)*e;
-    kid.rotation.y=yaw; lao.rotation.y=yaw; lao.position.set(53,0.3,27.5);
-    compassEl.style.transform='rotate('+(yaw*180/Math.PI)+'deg)'; heading=yaw; }
+  if(mode==='turn'){ turnT+=dt; while(turnCues.length&&turnT>=turnCues[0][0]) turnCues.shift()[1](); const u=Math.min(1,Math.max(0,(turnT-1.8)/1.9)), e=u*u*(3-2*u); const yaw=turnFrom+(Math.PI-turnFrom)*e;
+    kid.rotation.y=yaw; lao.rotation.y=yaw; lao.position.set(52.6,0.3,26.2); kid.position.y=0.3+Math.sin(u*Math.PI)*0.6;
+    turnRing.visible=turnT>1.5&&turnT<4.3; turnRing.position.set(P.x+1.3,0.6,P.z-0.4); turnRing.rotation.y=yaw-Math.PI*0.9;
+    const pu=Math.min(1,Math.max(0,(turnT-4.1)/0.7)); lao.userData.arm.rotation.x=-1.35*pu*pu*(3-2*pu);   // 老殘抬手指向千佛山
+    faceEl.setAttribute('transform','rotate('+(-yaw*180/Math.PI)+' 50 50)'); heading=yaw; }
   // 時間
   duskNow+=(dusk-duskNow)*Math.min(1,dt*0.6); applyTime(duskNow); inkMat.uniforms.warm.value=duskNow;
   // 鏡頭
-  const dc=desiredCam(); const k=first?1:Math.min(1,dt*(mode==='turn'?10:cineMode?1.2:4)); camPos.lerp(dc.pos,k); camLook.lerp(dc.look,k); first=false;
+  const dc=desiredCam(); const k=first?1:Math.min(1,dt*(mode==='turn'?(turnT<4?6:1.5):cineMode?1.2:4)); camPos.lerp(dc.pos,k); camLook.lerp(dc.look,k); first=false;
   camera.position.copy(camPos); camera.lookAt(camLook);
   sun.position.set(P.x-60+duskNow*20, 90-duskNow*45, P.z+50-duskNow*90); sun.target.position.set(P.x,0,P.z); sc.updateProjectionMatrix();
   water.material.uniforms.time.value=t;
@@ -1194,14 +1430,82 @@ function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
   updAmbient(t); updWords(t); updGuide(t); if(!(talking && vn.classList.contains('on') && !vn.classList.contains('clear'))) drawScene();
   // 標籤
   if(mode==='inner'){ INNER.forEach((w,i)=>{ innerLabels[i].classList.toggle('next',i===innerStep); innerLabels[i].classList.toggle('done',i<innerStep); place(innerLabels[i],w.x,6,w.z); }); }
+  else if(mode==='turn'){ stations.forEach(s=>s.el.style.display='none'); }
   else { innerLabels.forEach(e=>e.style.display='none'); stations.forEach(s=>place(s.el, s.x, s.id==='lixia'?8.5:s.id==='tie'?8:s.id==='shui'?6:s.id==='que'?5:2, s.z)); }
-  mLabel.style.display='none';
+  if(mode==='turn'&&turnT>4.3) place(mLabel,-10,62,-185); else mLabel.style.display='none';
   requestAnimationFrame(loop); }
 const pv=new T.Vector3();
 function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.x)>1.1||Math.abs(pv.y)>1.1){ el.style.display='none'; return; } el.style.display=''; el.style.left=((pv.x+1)/2*innerWidth)+'px'; el.style.top=((1-pv.y)/2*innerHeight)+'px'; }
+// ---------- 自動存檔：每過一站存一次；平板自己重新整理也能接著玩 ----------
+const SAVE_KEY='mh_save_v1';
+function saveGame(done){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify({t:Date.now(),done:!!done,step,mainShown,gotCards,visited,dusk,mode,innerStep,
+  ch:{on:CH.on,streak:CH.streak,wrong:CH.wrong,ever:CH.ever},ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||''])})); }catch(e){} }
+function loadSave(){ try{ const v=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(v && Date.now()-v.t<8*3600e3 && v.step>=0) return v; }catch(e){} return null; }
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function resumeGame(v){ step=v.step; mainShown=!!v.mainShown; Object.assign(visited,v.visited||{}); dusk=duskNow=v.dusk||0; Object.assign(CH,v.ch||{}); modeChip();
+  Object.keys(v.gotCards||{}).forEach(n=>{ if(gotCards[n]||CARDS.indexOf(n)<0) return; gotCards[n]=1; cards++; scrollBar.children[CARDS.indexOf(n)].className='on'; });
+  document.getElementById('cards').textContent=cards;
+  (v.ans||[]).forEach(([id,f,p])=>{ const q=MH.BYID[id]; if(q) answered.push({q,first:!!f,picked:p}); });
+  if(v.done){ showEnd(); return; }
+  const id=order[step];
+  if(v.mode==='inner'||id==='inner'){ enterInner(); innerStep=Math.max(0,Math.min(v.innerStep||0,INNER.length-1)); goalNow=INNER[innerStep].goal;
+    if(innerStep>0){ const w=INNER[innerStep-1]; P.set(w.x+(innerStep>=3?0:2),0.3,w.z+(innerStep>=3?0:1)); laoPos.set(P.x+1.5,0.3,P.z-1.5); } }
+  else { const pos={lixia:[-31,-33],tie:[-2,-4.5],he:[42,16],end:[-6,25]}[id]||[-31,-33]; P.set(pos[0],0.3,pos[1]); laoPos.set(P.x-2,0.3,P.z-1); setupWords(id); goalNow=GOALS[id]; }
+  first=true; trail.length=0; updHint(); toast('已回到上次的進度'); }
+{ const sv=loadSave(), rb=document.getElementById('resume');
+  if(sv){ rb.hidden=false; rb.textContent=sv.done?'看上次的結果和長卷':'繼續上次進度（已收集 '+Object.keys(sv.gotCards||{}).length+' 段景色）'; document.getElementById('go').textContent='重新開始';
+    rb.addEventListener('click',()=>{ document.getElementById('start').hidden=true; ac(); musicStart(); resumeGame(sv); }); } }
+
+// ---------- 迷路保險：30 秒沒有更接近目標，就出現「帶路」按鈕 ----------
+const helpBtn=document.getElementById('helpBtn'); const LOST={key:null,best:1e9,t:0,warned:false}; let autoPath=[];
+function lostTarget(){ if(talking||mode==='turn'||step<0) return null;
+  if(mode==='lake' && wordKey){ const k=tokens.find(o=>!o.got && o.i===wordGot); if(k) return {key:'w'+wordKey+wordGot,x:k.x,z:k.z}; }
+  const s=nextStation(); return s?{key:(mode==='inner'?'i':'s')+(s.name||s.id),x:s.x,z:s.z}:null; }
+function updLost(dt){ const g=lostTarget(); if(!g){ helpBtn.hidden=true; return; }
+  if(g.key!==LOST.key){ LOST.key=g.key; LOST.best=1e9; LOST.t=0; LOST.warned=false; helpBtn.hidden=true; }
+  const d=Math.hypot(P.x-g.x,P.z-g.z); if(d<LOST.best-2){ LOST.best=d; LOST.t=0; } else LOST.t+=dt;
+  if(LOST.t>18 && !LOST.warned){ LOST.warned=true; toast('找不到路嗎？跟著紅色箭頭和羅盤走'); }
+  if(LOST.t>30 && helpBtn.hidden){ helpBtn.textContent=mode==='inner'?'👣 迷路了？請老殘帶路':'🚣 迷路了？請船家帶路'; helpBtn.hidden=false; } }
+helpBtn.addEventListener('click',()=>{ const g=lostTarget(); helpBtn.hidden=true; LOST.t=0; LOST.best=1e9; if(!g) return;
+  autoPath=[]; if(mode==='inner' && g.x<-3 && P.x>-3) autoPath=CORR.map(p=>[p[0],p[1]]).filter(p=>p[0]>=g.x-1);   // 要過荷池：先沿著迴廊走
+  autoPath.push([g.x,g.z]); const f=autoPath.shift(); target=new T.Vector3(f[0],0.3,f[1]); });
+setInterval(()=>{ if(!target && autoPath.length && !talking){ const f=autoPath.shift(); target=new T.Vector3(f[0],0.3,f[1]); } },200);
+addEventListener('keydown',()=>{ autoPath=[]; }); document.getElementById('pad').addEventListener('pointerdown',()=>{ autoPath=[]; });
+
+// ---------- 課文朗讀（用平板內建的中文語音，iPad Safari 也能用） ----------
+const TTS={v:null,ok:'speechSynthesis' in window};
+function pickVoice(){ const vs=speechSynthesis.getVoices(); TTS.v=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_](HK|Hant)/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null; }
+if(TTS.ok){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function say(text){ if(!TTS.ok){ toast('這台裝置不支援朗讀'); return; } speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text.replace(/[▶👆🔥📜✓]/g,'')); if(!TTS.v) pickVoice();
+  if(TTS.v) u.voice=TTS.v; u.lang=TTS.v?TTS.v.lang:'zh-TW'; u.rate=0.88; duck(0.25); u.onend=u.onerror=()=>duck(1); speechSynthesis.speak(u); }
+{ const rb=document.getElementById('readBtn'); if(!TTS.ok) rb.hidden=true;
+  rb.addEventListener('click',e=>{ e.stopPropagation(); say(txt.innerText); }); }
+textBox.addEventListener('click',e=>{ const b=e.target.closest('.say'); if(!b) return; e.stopPropagation(); say(PASSAGE[+b.dataset.i]); });
+// 平板鎖屏、切出去再回來：重新接上聲音
+addEventListener('pointerdown',()=>{ if(AC && AC.state!=='running'){ try{ AC.resume(); }catch(e){} } },true);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ if(AC&&AC.state!=='running'){ try{ AC.resume(); }catch(e){} } if(AC) MUS.next=Math.max(MUS.next,AC.currentTime+0.2); } else if(TTS.ok) speechSynthesis.cancel(); });
+
+// ---------- 開頭動畫（約 20 秒，可以跳過） ----------
+function playIntro(done){ const el=document.getElementById('intro'); el.hidden=false; let ended=false; const timers=[];
+  el.innerHTML='<div class="bg" id="iA"></div><div class="bg" id="iB"></div><img class="who" alt=""><div class="scroll"><div class="v seal">劉鶚</div><div class="v big">大明湖</div><div class="v small">老殘遊記</div></div><div class="ln"></div><button class="skip" type="button">跳過 ▶▶</button>';
+  const A=el.querySelector('#iA'), B=el.querySelector('#iB'), who=el.querySelector('.who'), sc=el.querySelector('.scroll'), ln=el.querySelector('.ln'); let fr=A;
+  const bg=k=>{ const n=fr===A?B:A; n.style.setProperty('--im','url("'+BG[k]+'")'); n.className='bg'; void n.offsetWidth; n.className='bg in'; fr.className='bg'; fr=n; };
+  const at=(ms,f)=>timers.push(setTimeout(f,ms));
+  const line=t=>{ ln.classList.remove('on'); at(500,()=>{ ln.innerHTML=t; ln.classList.add('on'); }); };
+  const finish=()=>{ if(ended) return; ended=true; timers.forEach(clearTimeout); el.style.transition='opacity .8s'; el.style.opacity=0; setTimeout(()=>{ el.hidden=true; el.style.opacity=''; el.style.transition=''; el.innerHTML=''; done(); },800); };
+  at(300,()=>{ sc.classList.add('open'); tone('chime'); });
+  at(3600,()=>{ sc.style.opacity=0; bg('jinan'); line('清朝末年，山東濟南府。'); });
+  at(7200,()=>line('家家泉水，戶戶垂楊，<br>比那江南風景，還要有趣。'));
+  at(11000,()=>{ who.src=PPL['老殘']; who.classList.add('on'); line('一位搖著串鈴的江湖郎中——<b>老殘</b>，<br>帶著小藥童來到了這裡。'); tone('pop'); });
+  at(15000,()=>{ who.classList.remove('on'); bg('que'); line('這一天午後，他們走到鵲華橋邊……'); });
+  at(18600,()=>line('跟著老殘，去遊大明湖吧！'));
+  at(21500,finish);
+  el.querySelector('.skip').addEventListener('click',e=>{ e.stopPropagation(); finish(); }); }
+
 updHint(); loop();
-window.__dbg={P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
+window.__dbg={endTest:()=>{ CARDS.forEach(n=>gotCards[n]=1); showEnd(); },P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
 })();
 </script>
+
 
 </body></html>
