@@ -920,24 +920,24 @@ const TASKS={
     ch.appendChild(b); }); },
  // 千佛山：每種顏色指的是山上的什麼
  colormean(){ wait(); who.textContent='任務：顏色是什麼？'; setFace(null); showActor(null);
-  const C=[{c:'紅的火紅',k:'red',a:'丹楓',why:'紅色的是丹楓：葉子變紅的楓樹。'},
+  const C=[{c:'紅的火紅',k:'red',a:'丹楓和僧樓',why:'紅色的是丹楓（葉子變紅的楓樹），還有梵宇僧樓的紅牆。'},
            {c:'白的雪白',k:'white',a:'蘆花',why:'白色的是蘆花：湖岸那一排正在開花的蘆葦，雪白一片。'},
-           {c:'青的靛青',k:'blue',a:'蒼松',why:'青藍色的是蒼松：顏色深青的松樹。'},
-           {c:'綠的碧綠',k:'green',a:'翠柏',why:'碧綠色的是翠柏：翠綠的柏樹。'}];
-  const ITEMS=['丹楓','蘆花','蒼松','翠柏']; const COL={red:'#d0402a',white:'#f4f1ea',blue:'#2f5d8c',green:'#3d8a4a'};
+           {c:'青的靛青',k:'blue',a:'天空和湖水',why:'青藍色的是天空和湖水：晴朗的天空，和澄淨如鏡的大明湖。'},
+           {c:'綠的碧綠',k:'green',a:'蒼松翠柏',why:'碧綠色的是蒼松翠柏：山上一片青綠的松樹和柏樹。'}];
+  const ITEMS=['丹楓和僧樓','蘆花','天空和湖水','蒼松翠柏']; const COL={red:'#d0402a',white:'#f4f1ea',blue:'#2f5d8c',green:'#3d8a4a'};
   let k=0, miss=false, picked=null; const got={};
   const render=()=>{ const c=C[k];
     txt.innerHTML='<span class="cdot" style="background:'+COL[c.k]+'"></span>「<b>'+c.c+'</b>」，指的是山上的什麼？'
       +'<div class="colors">'+C.map((x,i)=>'<span class="'+(i<k?'got':i===k?'now':'')+'">'+x.c.slice(0,2)+'：'+(i<k?'<b>'+x.a+'</b>':'＿＿')+'</span>').join('　')+'</div>';
-    quoteEl.innerHTML='<span class="qt">線索：蒼松翠柏……一株半株的丹楓……還有山腳下湖岸那一排白花</span>';
+    quoteEl.innerHTML='<span class="qt">線索：蒼松翠柏……一株半株的丹楓……湖岸那一排白花……還有頭上的天空、腳下的湖水</span>';
     ch.innerHTML=''; ITEMS.forEach(it=>{ const b=document.createElement('button'); b.type='button'; b.className='opt tile'; b.textContent=it; if(got[it]){ b.disabled=true; b.classList.add('right'); }
       b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
         if(it===c.a){ got[it]=1; tone('pop'); k++;
           if(k<C.length){ render(); toast(c.why); }
-          else { tone('ding'); txt.innerHTML='<b class="ok">全部配對正確！</b><br>紅：丹楓　白：蘆花　青：蒼松　綠：翠柏<br>老殘用四種顏色，把眼前的楓葉、蘆花、松柏一次寫出來。';
+          else { tone('ding'); txt.innerHTML='<b class="ok">全部配對正確！</b><br>紅：丹楓和僧樓　白：蘆花　青：天空和湖水　綠：蒼松翠柏<br>老殘用四種顏色，把眼前的楓葉、寺廟、蘆花、天空湖水、松柏一次寫出來。';
             quoteEl.innerHTML=''; ch.innerHTML='';
             pic.style.transform='scale(1.04)';
-            showTags([{x:900,y:335,t:'丹楓（火紅）'},{x:1160,y:410,t:'蘆花（雪白）'},{x:770,y:240,t:'蒼松（靛青）',c:'blue'},{x:1310,y:280,t:'翠柏（碧綠）',c:'blue'},{x:495,y:262,t:'梵宇僧樓'}]);
+            showTags([{x:900,y:335,t:'丹楓（火紅）'},{x:1160,y:410,t:'蘆花（雪白）'},{x:1450,y:130,t:'天空（靛青）',c:'blue'},{x:330,y:650,t:'湖水（靛青）',c:'blue'},{x:720,y:370,t:'蒼松翠柏（碧綠）',c:'blue'},{x:630,y:222,t:'僧樓紅牆（火紅）'}]);
             record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓、白—蘆花、青—蒼松、綠—翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
         else { if(!miss){ miss=true; picked=c.c.slice(0,2)+'配'+it; } b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
       ch.appendChild(b); }); };
