@@ -120,14 +120,9 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 #end{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;background:rgba(40,52,50,.6);overflow:auto}
 #end .card{background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:18px 20px;width:min(640px,calc(100% - 28px));max-height:calc(100% - 36px);overflow:auto;box-sizing:border-box}
 #end h2{margin:0 0 10px;letter-spacing:2px}
-#end .scrollwrap{display:flex;align-items:stretch}
-#end .rod{flex:none;width:14px;border-radius:7px;background:linear-gradient(90deg,#5a3a22,#a8763f 45%,#5a3a22);box-shadow:0 2px 4px #0004;margin:-6px 0}
-#end .scroll{display:flex;gap:0;overflow-x:auto;padding:10px 0;background:#efe3c4;border-top:3px solid #b9a77f;border-bottom:3px solid #b9a77f;flex:1;min-width:0}
-#end figure{flex:none;width:150px;height:104px;margin:0;background-size:cover;background-position:center;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
-#end figure+figure{margin-left:-14px}
-#end figcaption{position:absolute;left:0;right:0;bottom:0;color:#fff;font-size:13px;text-align:center;padding:2px;text-shadow:0 1px 3px #000,0 0 6px #000}
-#end figcaption b{display:block;font-size:11px;opacity:.9}
-#end .scrollhint{font-size:13px;color:var(--muted);text-align:right;margin:4px 0 0}
+#end .scroll{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px;background:#e9dfc6;border:2px solid #b9a77f;border-radius:4px}
+#end figure{margin:0;height:84px;background-size:cover;background-position:center;position:relative;border-radius:2px}
+#end figcaption{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);color:#fff;font-size:13px;text-align:center;padding:2px}
 .score{font-size:18px}
 .rev{border-top:1px dashed var(--line);padding:8px 0;font-size:15px;line-height:1.6}
 .rq{font-weight:700}
@@ -634,7 +629,6 @@ const stations=[
 const GOALS={inner:'在鐵公祠裡面走走看看',lixia:'點湖面，往北划到歷下亭',tie:'點湖面，往西划到鐵公祠',shui:'沿著北岸往東走，到古水仙祠',he:'划船到歷下亭後面的荷花叢',end:'划回鵲華橋，把景色交給老畫師'};
 const order=['lixia','tie','inner','he','end'];
 const CARDS=['鵲華橋','歷下亭','鐵公祠','千佛山','明湖倒影','蘆花絨毯','古水仙祠','蓮蓬'];
-const CARD_POS={千佛山:'background-size:220% auto;background-position:50% 22%',明湖倒影:'background-size:220% auto;background-position:50% 92%'};
 const CARD_BG={鵲華橋:'que',歷下亭:'lixia',鐵公祠:'tie',千佛山:'qianfo',明湖倒影:'qianfo',蘆花絨毯:'reed',古水仙祠:'shui',蓮蓬:'lotus'};
 let step=-1, mainShown=false, goalNow=null; const visited={}; const gotCards={}; let cards=0;
 const answered=[];
@@ -901,14 +895,13 @@ function checkStations(){ if(talking) return;
 
 // ---------- 結局：《明湖長卷》＋複習 ----------
 function showEnd(){ const e=document.getElementById('end'); const first=answered.filter(a=>a.first).length;
-  let h='<h2>《明湖長卷》完成了！</h2><div class="scrollwrap"><span class="rod"></span><div class="scroll">'+CARDS.map((c,i)=>'<figure style="background-image:url(\''+BG[CARD_BG[c]]+'\');'+(CARD_POS[c]||'')+'"><figcaption><b>'+'①②③④⑤⑥⑦⑧'[i]+'</b>'+c+'</figcaption></figure>').join('')+'</div><span class="rod"></span></div><p class="scrollhint">由左到右，照遊覽的順序 →（可以左右滑動）</p>';
+  let h='<h2>《明湖長卷》完成了！</h2><div class="scroll">'+CARDS.map(c=>'<figure style="background-image:url(\''+BG[CARD_BG[c]]+'\')"><figcaption>'+c+'</figcaption></figure>').join('')+'</div>';
   h+='<p class="score">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個。</p>';
   const bad=answered.filter(a=>!a.first);
   if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
   else h+='<p>全部第一次就答對，太厲害了！</p>';
   h+='<div class="endbtns"><button id="readAll" type="button">📜 看全文</button><button id="again" type="button">再玩一次</button></div>';
   e.innerHTML='<div class="card">'+h+'</div>'; e.hidden=false;
-  { const sc=e.querySelector('.scroll'); sc.scrollLeft=0; let t0=0, x=0; const step=(now)=>{ if(!sc.isConnected) return; if(!t0) t0=now; x=(now-t0)*0.09; sc.scrollLeft=x; if(x<sc.scrollWidth-sc.clientWidth) requestAnimationFrame(step); else setTimeout(()=>sc.scrollTo({left:0,behavior:'smooth'}),900); }; setTimeout(()=>requestAnimationFrame(step),700); }
   document.getElementById('again').addEventListener('click',()=>location.reload());
   document.getElementById('readAll').addEventListener('click',()=>openText(null)); }
 
@@ -1207,7 +1200,7 @@ function loop(){ const dt=Math.min(clock.getDelta(),0.05), t=clock.elapsedTime;
 const pv=new T.Vector3();
 function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.x)>1.1||Math.abs(pv.y)>1.1){ el.style.display='none'; return; } el.style.display=''; el.style.left=((pv.x+1)/2*innerWidth)+'px'; el.style.top=((1-pv.y)/2*innerHeight)+'px'; }
 updHint(); loop();
-window.__dbg={showEnd,P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
+window.__dbg={P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
 })();
 </script>
 
