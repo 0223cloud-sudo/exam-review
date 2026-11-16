@@ -75,6 +75,14 @@ body.vn #helpBtn{display:none}
 .codebox .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(17px,2.6vw,22px);letter-spacing:1px;word-break:break-all;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:8px 0;user-select:all;-webkit-user-select:all}
 .retry{border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
 .retry .opt{display:block;width:100%;margin:6px 0}
+#modeChip{pointer-events:auto;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+#modeChip.ch{background:#b23a2a;color:#fff;border-color:#7a2218}
+.stage{display:inline-block;background:var(--seal);color:#fff;border-radius:10px;padding:0 10px;font-size:15px;margin-right:8px;vertical-align:2px}
+.method{display:block;margin-top:6px;background:#fff3d6;border-left:4px solid #c9a24a;padding:4px 10px;font-size:18px;color:#5a4320;border-radius:4px}
+#txt b.bad{color:var(--seal);margin-right:6px}
+.opt.shown{box-shadow:0 0 0 3px #2f7a4a55}
+#start .note{font-size:14px;background:#f3e7c9;border-radius:8px;padding:6px 10px;color:#5a4a36}
+#end .score b.big{font-size:40px;color:var(--seal)}
 #musBtn{pointer-events:auto;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
 #musBtn.off{color:var(--muted);text-decoration:line-through}
 #pad{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:4;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:4px}
@@ -96,7 +104,8 @@ body.vn #pad{display:none}
 #dlg.asking{cursor:default}
 #dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(860px,calc(100% - 24px));max-height:calc(100% - 84px - env(safe-area-inset-bottom,0px));overflow:auto;background:rgba(250,244,230,.94);border:2px solid var(--line);border-radius:10px;padding:10px 16px 10px;box-shadow:0 6px 20px rgba(0,0,0,.35);box-sizing:border-box;z-index:3;cursor:pointer}
 #who{font-weight:700;color:var(--seal);font-size:17px;flex:1}
-#txt{font-size:21px;line-height:1.65;margin-top:4px}
+#txt{font-size:23px;line-height:1.7;margin-top:4px}
+#txt,.opt,.go,.method,.tip{font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
 #more{text-align:right;font-size:13px;color:var(--muted)}
 .dhead{display:flex;align-items:center;gap:10px;min-height:28px}
 #face{width:46px;height:46px;border-radius:50%;flex:none;background-color:#e8dcc0;background-size:260%;background-position:50% 2%;background-repeat:no-repeat;border:2px solid var(--line)}
@@ -111,7 +120,7 @@ body.vn #pad{display:none}
 mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-weight:700}
 #choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;margin-top:8px}
 #choices:has(.tile){grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}
-.opt,.go{font:inherit;font-size:18px;padding:10px 12px;border-radius:8px;border:2px solid var(--line);background:#fffaf0;color:var(--ink);cursor:pointer;text-align:left}
+.opt,.go{font:inherit;font-size:20px;min-height:52px;padding:10px 14px;border-radius:8px;border:2px solid var(--line);background:#fffaf0;color:var(--ink);cursor:pointer;text-align:left}
 .tile{text-align:center;font-size:22px;font-weight:700}
 .opt.right{border-color:#2f7a4a;background:#e3f2e3}
 .opt.wrong{border-color:var(--seal);background:#f6e0da;color:var(--muted);text-decoration:line-through}
@@ -176,7 +185,7 @@ body.vnfull #compass{display:none}
 #compass .cap{font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1px 4px;margin-top:2px}
 @media (max-width:600px){#compass,#compass svg{width:72px}#compass svg{height:72px}}
 #start{z-index:40}
-@media (max-width:700px){#txt{font-size:18px}#actor{height:46vh}#dlg{max-height:60vh}}
+@media (max-width:700px){#txt{font-size:19px}.opt,.go{font-size:18px;min-height:48px}#actor{height:46vh}#dlg{max-height:60vh}}
 @media (prefers-reduced-motion:reduce){#songBanner{animation:none}}
 .label.big{font-size:20px;padding:4px 14px;background:#b23a2a;color:#fff;border-color:#7a2218}
 </style>
@@ -187,7 +196,8 @@ body.vnfull #compass{display:none}
   <div class="chip title">跟著老殘遊明湖</div>
   <div class="chip" id="main" hidden>主線：《明湖長卷》 <b id="cards">0</b>/8 <span id="scrollbar" class="sb"></span></div>
   <div class="chip" id="hint">下一站：鵲華橋</div>
-  <div class="chip" id="modeChip" hidden style="background:#b23a2a;color:#fff;border-color:#7a2218">🔥 挑戰模式</div>
+  <div class="chip" id="scoreChip" hidden>得分 <b id="score">0</b></div>
+  <button class="chip" id="modeChip" type="button" aria-label="切換一般模式或挑戰模式">📜 一般模式</button>
   <button class="chip" id="musBtn" type="button" aria-label="配樂開關">♪ 配樂</button>
 </div>
 <div id="labels"></div>
@@ -248,6 +258,7 @@ body.vnfull #compass{display:none}
 <div id="start"><div class="card">
   <h1>跟著老殘遊明湖</h1>
   <p>你是老殘的小藥童。<br>幫鵲華橋邊的老畫師，把大明湖的景色一處一處帶回來，完成《明湖長卷》。</p><p>點地面走路、點湖面坐船，也可以用<b>鍵盤方向鍵</b>或右下角的方向按鈕。跟著<b style="color:#b23a2a">紅色箭頭</b>和左上角的羅盤找下一站。到了景點，讀課文、回答老殘的問題。</p>
+  <p class="note">📌 小藥童和老畫師是遊戲裡加的角色，課文裡沒有；老殘走的路線、看到的景色都照課文。</p>
   <p style="font-size:13px">有配樂和漁歌，建議戴耳機或打開聲音 🔊（右上角可以關配樂）</p>
   <div class="row"><button id="go">出發</button><button id="resume" class="ghost" type="button" hidden></button></div>
 </div></div>
@@ -631,6 +642,7 @@ const SCENES={
   {w:'老畫師',t:'再考你兩題，免得我畫錯了。'},
   {quiz:'fin',n:2},
   {w:'老畫師',t:'有聲有色！我這就把八段景色畫上去。'},
+  {w:'旁白',t:'課文到這裡結束了。在原著裡，老殘回到鵲華橋，在街上看到一張說書的招子，地點在「明湖居」。那裡的白妞說書有多精彩？可以去讀〈明湖居聽書〉。'},
   {act:()=>showEnd()}]
 };
 const stations=[
@@ -842,31 +854,69 @@ function next(){ if(busy) return;
 function wait(){ busy=true; more.hidden=true; dlg.classList.add('asking'); }
 function done(go){ busy=false; dlg.classList.remove('asking'); if(go!==false) next(); }
 function goBtn(label){ const b=document.createElement('button'); b.className='go'; b.type='button'; b.textContent=label||'繼續 ▶'; b.addEventListener('click',e=>{e.stopPropagation(); done();}); ch.appendChild(b); b.focus({preventScroll:true}); }
-function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curTask]; answered.push({q,first,picked}); adapt(first); }
-// ---------- 提示自動分兩級：連續第一次就答對 3 題 → 挑戰模式（收起線索）；挑戰模式中答錯 2 題 → 回一般模式 ----------
-const CH={on:false,streak:0,wrong:0,ever:false}; let curTask='';
-function adapt(first){ if(first) CH.streak++; else CH.streak=0;
-  if(!CH.on && CH.streak>=3){ CH.on=true; CH.ever=true; CH.wrong=0; toast('🔥 進入挑戰模式：線索收起來了！'); }
-  else if(CH.on && !first && ++CH.wrong>=2){ CH.on=false; CH.streak=0; toast('回到一般模式，線索回來了'); }
-  modeChip(); }
-function modeChip(){ const c=document.getElementById('modeChip'); if(c){ c.hidden=!CH.on; } }
-
+function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curTask]; answered.push({q,first,picked}); scoreShow(); }
+// ---------- 模式：學生自己切換。一般模式有「看課文線索」；挑戰模式不給線索 ----------
+const CH={on:false,ever:false}; let curTask='', lotusN=0, evDone=0; const EV_MAX=6;
+try{ if(localStorage.getItem('mh_mode')==='ch'){ CH.on=CH.ever=true; } }catch(_){}
+function modeChip(){ const c=document.getElementById('modeChip'); if(!c) return; c.textContent=CH.on?'🔥 挑戰模式':'📜 一般模式'; c.classList.toggle('ch',CH.on); c.title='點一下切換模式'; }
+document.getElementById('modeChip').addEventListener('click',e=>{ e.stopPropagation(); CH.on=!CH.on; if(CH.on) CH.ever=true; try{ localStorage.setItem('mh_mode',CH.on?'ch':'n'); }catch(_){} modeChip();
+  toast(CH.on?'🔥 挑戰模式：下一題起不給課文線索':'📜 一般模式：下一題起可以看課文線索'); });
+modeChip();
+// ---------- 計分：答題 95 分（第一次就答對的比例）＋接蓮蓬最多 5 分 = 100 分 ----------
+function lotusPts(){ return Math.min(5,Math.round(lotusN*5/8)); }
+function calcScore(){ const n=answered.length; return (n?Math.round(95*answered.filter(a=>a.first).length/n):0)+lotusPts(); }
+function scoreShow(){ const c=document.getElementById('scoreChip'); if(!c) return; c.hidden=!answered.length; document.getElementById('score').textContent=calcScore(); }
+// ---------- 答錯時的「方法提示」：依題目類型提醒怎麼想 ----------
+function methodTip(q){ const s=q.q;
+  if(/說錯|哪裡不對/.test(s)) return '回到課文找那一句，一個字一個字對照，找出不一樣的地方。';
+  if(/意思|指的是|指什麼|是指|是什麼？/.test(s)) return '把每個選項代回句子裡讀讀看，哪一個最通順？';
+  if(/修辭|摹寫|譬喻|感官|聽覺|視覺|寫法|排比/.test(s)) return '先看句子在寫什麼：寫顏色是視覺、寫聲音是聽覺；有「好似、彷彿、同…一般」是譬喻；句型相同接連出現是排比。';
+  if(/方向|哪一邊|朝|向/.test(s)) return '找方位詞：朝北、向西、正面、朝東、東邊……再看左上角的羅盤。';
+  if(/為什麼|原因|最主要/.test(s)) return '看事情前後的句子，原因常常就寫在旁邊。';
+  if(/順序|路線|怎麼走|什麼時候/.test(s)) return '找表示移動和抵達的詞：下船、盪去、到了、過了……';
+  if(/心情|感受|感覺|表示他|透露/.test(s)) return '看人物說的話和動作，例如「嘆賞不絕」「暗暗點頭」「實在奇絕」。';
+  return '把題目裡的人、事、景拿去和課文對照，先刪掉課文沒寫的選項。'; }
+// ---------- 兩步驟證據題：答對後再選「課文哪一句最能支持」（每次遊戲最多 6 題） ----------
+function canEvidence(q){ if(!q._id||!q.hl||q.o.length<2||/^(word|task)\./.test(q._id)||evDone>=EV_MAX) return false;
+  const quotes=(q.q.match(/「[^」]+」/g)||[]).map(x=>x.slice(1,-1)); if(quotes.some(x=>q.hl.includes(x)||x.includes(q.hl))) return false;  /* 題目已經引了這一句，就不再問證據 */
+  return Math.random()<0.6; }
+function evidenceOpts(q){ const p=paraOf(q.hl), seen=new Set([q.hl]), pool=[];
+  Object.values(MH.BYID).forEach(x=>{ const h=x.hl; if(!h||seen.has(h)||h.length<5||paraOf(h)===p||paraOf(h)<0||h.includes(q.hl)||q.hl.includes(h)) return; seen.add(h); pool.push(h); });
+  return shuffle(pool).slice(0,3); }
 function ask(q){ wait(); const sp=q.w||'老殘'; who.textContent=sp+'考你'; setFace(sp); showActor(sp);
-  txt.textContent=q.q; quoteEl.innerHTML=CH.on?'<span class="qt">🔥 挑戰模式：沒有線索，靠自己！</span>':'<button class="peek" type="button">📜 看課文線索</button>';
-  if(!CH.on) quoteEl.querySelector('.peek').addEventListener('click',e=>{ e.stopPropagation(); openText(q.hl); });
-  ch.innerHTML=''; let wrong=false, picked=null;
-  shuffle(q.o.map((o,i)=>({o,ok:i===0}))).forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.textContent=c.o; b.className='opt'; if(c.ok) curRight=b;
-    b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
-      if(c.ok){ [...ch.children].forEach(x=>x.disabled=true); b.classList.add('right'); tone('ding');
-        txt.innerHTML='<b class="ok">答對了！</b>'+esc(q.why); quoteEl.innerHTML=quoteHtml(q.hl)+'<span class="src">「'+esc(q.hl)+'」</span>';
-        record(q,!wrong,picked); goBtn(); }
-      else { b.disabled=true; b.classList.add('wrong'); tone('bad'); if(!wrong){ wrong=true; picked=c.o; }
-        txt.innerHTML=esc(q.q)+'<br><span class="tip">'+(CH.on?'再想想！（挑戰模式不給線索，可以按右上角「📜 課文」自己找）':'再想想！線索在課文這一句：「'+esc(q.hl)+'」')+'</span>'; } });
-    ch.appendChild(b); }); }
+  const ev=canEvidence(q); if(ev) evDone++;
+  let first=true, picked=null;
+  const stage=(n,t)=>ev?'<span class="stage">第 '+n+' 步・'+t+'</span>':'';
+  const clue=()=>{ if(CH.on){ quoteEl.innerHTML='<span class="qt">🔥 挑戰模式：沒有線索，靠自己！</span>'; return; }
+    quoteEl.innerHTML='<button class="peek" type="button">📜 看課文線索</button>';
+    quoteEl.querySelector('.peek').addEventListener('click',e=>{ e.stopPropagation(); openText(q.hl,ev); }); };
+  const reveal=()=>{ quoteEl.innerHTML=quoteHtml(q.hl)+'<span class="src">「'+esc(q.hl)+'」</span>'; };
+  const finish=()=>{ record(q,first,picked); goBtn(); };
+  // 一組選項：答錯一次給方法提示、再試一次；第二次還錯就公布答案
+  const round=(opts,tag,onRight,onFail,onTip)=>{ ch.innerHTML=''; let miss=0, right=null;
+    shuffle(opts.map((o,i)=>({o,ok:i===0}))).forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.textContent=c.o; b.className='opt'; if(c.ok){ right=b; curRight=b; }
+      b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
+        if(c.ok){ [...ch.children].forEach(x=>x.disabled=true); b.classList.add('right'); tone('ding'); onRight(); return; }
+        b.disabled=true; b.classList.add('wrong'); tone('bad'); if(first){ first=false; picked=tag+c.o; }
+        if(++miss>=2){ [...ch.children].forEach(x=>x.disabled=true); right.classList.add('right','shown'); onFail(); } else onTip(); });
+      ch.appendChild(b); }); };
+  const step2=()=>{ const d=evidenceOpts(q); if(d.length<3){ txt.innerHTML='<b class="ok">答對了！</b>'+esc(q.why||''); reveal(); return finish(); }
+    const head=()=>'<b class="ok">判斷正確！</b>'+stage(2,'找證據')+'課文裡哪一句<b>最能支持</b>這個答案？';
+    txt.innerHTML=head(); quoteEl.innerHTML='<span class="qt">答案：'+esc(q.o[0])+'</span>';
+    round([q.hl,...d],'（證據）',
+      ()=>{ txt.innerHTML='<b class="ok">證據也找對了！</b>'+esc(q.why||''); reveal(); finish(); },
+      ()=>{ txt.innerHTML='<b class="bad">證據是這一句：</b>「'+esc(q.hl)+'」<br>'+esc(q.why||''); reveal(); finish(); },
+      ()=>{ txt.innerHTML=head()+'<span class="method">💡 方法：把每一句和答案對照，找<b>直接寫到</b>答案內容的那一句；只是同一段、沒寫到重點的不算。</span><span class="tip">再試一次！</span>'; }); };
+  const head1=()=>stage(1,'先判斷')+esc(q.q);
+  txt.innerHTML=head1(); clue();
+  round(q.o,'',
+    ()=>{ if(ev) return step2(); txt.innerHTML='<b class="ok">答對了！</b>'+esc(q.why||''); reveal(); finish(); },
+    ()=>{ txt.innerHTML='<b class="bad">沒關係，看正確答案：</b>'+esc(q.o[0])+'<br>'+esc(q.why||''); reveal(); finish(); },
+    ()=>{ txt.innerHTML=head1()+'<span class="method">💡 方法：'+esc(methodTip(q))+(CH.on||ev?'':'<br>線索在課文這一句：「'+esc(q.hl)+'」')+'</span><span class="tip">再試一次！只剩一次機會。</span>'; }); }
 
 // 課文全文（需要時才打開，不蓋住畫面）
 const textBox=document.getElementById('textbox');
-function openText(hl){ const i=hl?paraOf(hl):(lastHl?paraOf(lastHl):0);
+function openText(hl,noMark){ const i=hl?paraOf(hl):(lastHl?paraOf(lastHl):0); if(noMark) hl=null;
   let html=PASSAGE.map((p,k)=>'<p'+(k===i?' id="cur"':'')+'><span class="pn">'+NUM[k]+'</span>'+(k===i&&hl?esc(p).replace(esc(hl),'<mark>'+esc(hl)+'</mark>'):esc(p))+(TTS.ok?'<button class="say" type="button" data-i="'+k+'">🔊</button>':'')+'</p>').join('');
   textBox.querySelector('.tb').innerHTML=html; textBox.hidden=false; const c=document.getElementById('cur'); c&&c.scrollIntoView({block:'center'}); }
 textBox.addEventListener('click',e=>{ if(e.target===textBox||e.target.classList.contains('close')) textBox.hidden=true; });
@@ -1040,7 +1090,7 @@ const TASKS={
     spawn(); const timer=setInterval(spawn,520);
     const clock=setInterval(()=>{ left--; const el=document.getElementById('lt'); if(el) el.textContent=left; },1000);
     setTimeout(()=>{ clearInterval(timer); clearInterval(clock); field.innerHTML=''; field.hidden=true; dlg.style.visibility=''; tone('ding');
-      txt.innerHTML=(n>=8?'<b class="ok">過關！</b>':'')+'接到 <b>'+n+'</b> 個蓮蓬！老殘隨手摘了幾個，一面吃著。'; quoteEl.innerHTML=''; ch.innerHTML=''; goBtn(); },15000); }); },
+      lotusN=Math.max(lotusN,n); scoreShow(); txt.innerHTML=(n>=8?'<b class="ok">過關！</b>':'')+'接到 <b>'+n+'</b> 個蓮蓬！加 <b>'+lotusPts()+'</b> 分（最多 5 分）。老殘隨手摘了幾個，一面吃著。'; quoteEl.innerHTML=''; ch.innerHTML=''; goBtn(); },15000); }); },
  // 鵲華橋：在示意圖上依序點景點、畫出箭頭；點課文句子會畫出那一段
  route(){ wait(); who.textContent='任務：畫出遊覽路線'; setFace(null); showActor(null);
   txt.innerHTML='老畫師拿出一張大明湖示意圖。<b>依照老殘遊覽的順序，在地圖上點景點</b>，把路線畫出來。'; quoteEl.innerHTML='';
@@ -1081,8 +1131,8 @@ function checkStations(){ if(talking) return;
 function showEnd(){ saveGame(true); const e=document.getElementById('end'); const first=answered.filter(a=>a.first).length;
   const bad=answered.filter(a=>!a.first), redo=bad.filter(a=>a.q.o.length>1);
   let h='<h2>《明湖長卷》完成了！</h2><div class="longscroll"><p style="margin:10px;color:#6b5d4b">長卷繪製中……</p></div><p style="font-size:13px;color:#6b5d4b;margin:4px 0 0">👉 由左到右，照遊覽的順序；長卷可以左右滑動，<b>長按圖片</b>可以存到相簿。</p>';
-  h+='<p class="score">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個。'+(CH.ever?'　🔥 曾進入挑戰模式':'')+'</p>';
-  if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
+  h+='<p class="score">得分 <b class="big">'+calcScore()+'</b> / 100</p><p style="margin:2px 0;color:#6b5d4b">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個（兩步驟題要兩步都一次答對）；接蓮蓬 '+lotusN+' 個，加 '+lotusPts()+' 分。'+(CH.ever?'　🔥 用過挑戰模式':'')+'</p>';
+  if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.picked&&a.picked.startsWith('（證據）')?'（證據）'+a.q.hl:a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
   else h+='<p>全部第一次就答對，太厲害了！</p>';
   h+='<div class="retryBox"></div>';
   h+='<div class="endbtns">'+(redo.length?'<button id="redoBtn" type="button">✏️ 錯題再挑戰（'+redo.length+' 題）</button>':'')+'<button id="readAll" type="button">📜 看全文</button><button id="again" type="button">重新玩一次</button></div>';
@@ -1439,13 +1489,13 @@ function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.
 // ---------- 自動存檔：每過一站存一次；平板自己重新整理也能接著玩 ----------
 const SAVE_KEY='mh_save_v1';
 function saveGame(done){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify({t:Date.now(),done:!!done,step,mainShown,gotCards,visited,dusk,mode,innerStep,
-  ch:{on:CH.on,streak:CH.streak,wrong:CH.wrong,ever:CH.ever},ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||''])})); }catch(e){} }
+  ch:{on:CH.on,ever:CH.ever},lotusN,evDone,ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||''])})); }catch(e){} }
 function loadSave(){ try{ const v=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(v && Date.now()-v.t<8*3600e3 && v.step>=0) return v; }catch(e){} return null; }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
-function resumeGame(v){ step=v.step; mainShown=!!v.mainShown; Object.assign(visited,v.visited||{}); dusk=duskNow=v.dusk||0; Object.assign(CH,v.ch||{}); modeChip();
+function resumeGame(v){ step=v.step; mainShown=!!v.mainShown; Object.assign(visited,v.visited||{}); dusk=duskNow=v.dusk||0; CH.on=!!(v.ch&&v.ch.on); CH.ever=!!(v.ch&&v.ch.ever); lotusN=v.lotusN||0; evDone=v.evDone||0; modeChip();
   Object.keys(v.gotCards||{}).forEach(n=>{ if(gotCards[n]||CARDS.indexOf(n)<0) return; gotCards[n]=1; cards++; scrollBar.children[CARDS.indexOf(n)].className='on'; });
   document.getElementById('cards').textContent=cards;
-  (v.ans||[]).forEach(([id,f,p])=>{ const q=MH.BYID[id]; if(q) answered.push({q,first:!!f,picked:p}); });
+  (v.ans||[]).forEach(([id,f,p])=>{ const q=MH.BYID[id]; if(q) answered.push({q,first:!!f,picked:p}); }); scoreShow();
   if(v.done){ showEnd(); return; }
   const id=order[step];
   if(v.mode==='inner'||id==='inner'){ enterInner(); innerStep=Math.max(0,Math.min(v.innerStep||0,INNER.length-1)); goalNow=INNER[innerStep].goal;
@@ -1503,7 +1553,7 @@ function playIntro(done){ const el=document.getElementById('intro'); el.hidden=f
   el.querySelector('.skip').addEventListener('click',e=>{ e.stopPropagation(); finish(); }); }
 
 updHint(); loop();
-window.__dbg={endTest:()=>{ CARDS.forEach(n=>gotCards[n]=1); showEnd(); },P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),get talking(){return talking},get busy(){return busy},get step(){return step}};
+window.__dbg={endTest:()=>{ CARDS.forEach(n=>gotCards[n]=1); showEnd(); },P,setTarget,next,get tokens(){return tokens.map(t=>[t.x,t.z])},get mode(){return mode},get innerStep(){return innerStep},answerRight:()=>curRight&&curRight.click(),curRight:()=>curRight,get talking(){return talking},get busy(){return busy},get step(){return step}};
 })();
 </script>
 
