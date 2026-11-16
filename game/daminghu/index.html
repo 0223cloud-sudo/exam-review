@@ -15,9 +15,9 @@ html,body{height:100%;margin:0;overflow:hidden;background:#cfe0e6;color:var(--in
 .label.done{color:var(--muted)}
 .label.done::after{content:" ✓";color:var(--seal)}
 .label.next{border-color:var(--seal);color:var(--seal);font-weight:700}
-#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);background:var(--seal);color:#fff;padding:10px 20px;border-radius:6px;font-size:18px;box-shadow:0 4px 12px #0004;transition:opacity .4s;opacity:0;pointer-events:none}
-#start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(40,52,50,.45)}
-#start .card{background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:22px 26px;max-width:min(420px,calc(100% - 40px));text-align:center;box-shadow:0 6px 24px #0005}
+#toast{position:fixed;left:50%;top:calc(var(--hudB,58px) + 56px);max-width:calc(100% - 40px);text-align:center;transform:translateX(-50%);background:var(--seal);color:#fff;padding:10px 20px;border-radius:6px;font-size:18px;box-shadow:0 4px 12px #0004;transition:opacity .4s;opacity:0;pointer-events:none}
+#start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(40,52,50,.45);z-index:30}
+#start .card{background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:18px 24px;max-width:min(560px,calc(100% - 32px));max-height:calc(100% - 24px);overflow:auto;box-sizing:border-box;text-align:center;box-shadow:0 6px 24px #0005}
 #start h1{margin:0 0 6px;font-size:28px;letter-spacing:4px}
 #start p{margin:8px 0;font-size:16px;line-height:1.6;color:var(--muted)}
 #go{margin-top:10px;font:inherit;font-size:18px;padding:10px 28px;border-radius:6px;border:none;background:var(--seal);color:#fff;cursor:pointer}
@@ -41,7 +41,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:#cfe0e6;color:var(--in
 .tag::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:7px solid transparent;border-top-color:rgba(178,58,42,.93)}
 .tag.blue{background:rgba(47,93,110,.93)}.tag.blue::after{border-top-color:rgba(47,93,110,.93)}
 @keyframes tagIn{from{opacity:0;transform:translate(-50%,calc(-100% - 22px))}}
-#cap{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:2;background:rgba(250,244,230,.93);border:2px solid #a8322a;border-radius:4px;padding:6px 18px 6px 14px;font-size:clamp(18px,2.6vw,28px);letter-spacing:4px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+#cap{position:absolute;top:var(--hudB,calc(58px + env(safe-area-inset-top,0px)));left:50%;transform:translateX(-50%);z-index:2;background:rgba(250,244,230,.93);border:2px solid #a8322a;border-radius:4px;padding:6px 18px 6px 14px;font-size:clamp(18px,2.6vw,28px);letter-spacing:4px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none;transition:opacity .5s;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
 #cap::before{content:"明湖";display:inline-block;writing-mode:vertical-rl;font-size:.42em;letter-spacing:0;background:#b23a2a;color:#f6e3b4;padding:3px 2px;margin-right:10px;vertical-align:middle;border-radius:2px}
 #songBanner{position:absolute;top:24%;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;background:rgba(178,58,42,.9);color:#fff8e6;font-size:clamp(28px,5vw,52px);letter-spacing:8px;padding:10px 34px;border-radius:40px;box-shadow:0 0 0 6px rgba(255,240,200,.35),0 8px 30px rgba(0,0,0,.4);white-space:nowrap;animation:sing 1.2s ease-in-out infinite alternate}
 @keyframes sing{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.08);box-shadow:0 0 0 14px rgba(255,240,200,.2),0 8px 30px rgba(0,0,0,.4)}}
@@ -75,6 +75,13 @@ body.vn #helpBtn{display:none}
 .codebox .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(17px,2.6vw,22px);letter-spacing:1px;word-break:break-all;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:8px 0;user-select:all;-webkit-user-select:all}
 .retry{border-top:1px dashed var(--line);margin-top:8px;padding-top:8px}
 .retry .opt{display:block;width:100%;margin:6px 0}
+#autoBtn{pointer-events:auto;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+#autoBtn.on{background:#2f6f6a;color:#fff;border-color:#1f4f4b}
+@media (max-width:1100px){.hud .title{display:none}}
+#start .opts{display:flex;flex-wrap:wrap;gap:2px 16px;justify-content:center;margin:4px 0;font-size:16px}
+#start .opts label{display:flex;align-items:center;gap:6px;cursor:pointer;min-height:40px}
+#start .opts input{width:22px;height:22px}
+#start .rule{font-size:14px;text-align:left;background:#f6ecd2;border-radius:8px;padding:6px 12px;margin:6px 0;line-height:1.6}
 #modeChip{pointer-events:auto;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
 #modeChip.ch{background:#b23a2a;color:#fff;border-color:#7a2218}
 .stage{display:inline-block;background:var(--seal);color:#fff;border-radius:10px;padding:0 10px;font-size:15px;margin-right:8px;vertical-align:2px}
@@ -116,6 +123,7 @@ body.vn #pad{display:none}
 .peek{font:inherit;font-size:14px;padding:3px 10px;border-radius:12px;border:1px dashed var(--seal);background:transparent;color:var(--seal);cursor:pointer}
 #txt b.ok{color:#2f7a4a;margin-right:6px}
 .tip{color:var(--seal);font-size:17px}
+#txt .why{font-size:18px;color:#2f5a3a;background:#e9f3e6;border-radius:6px;padding:2px 10px;margin-bottom:4px}
 .pink{color:#d0607a}
 mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-weight:700}
 #choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;margin-top:8px}
@@ -176,10 +184,10 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 .endbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .endbtns button{font:inherit;font-size:17px;padding:8px 20px;border:none;border-radius:6px;background:var(--seal);color:#fff;cursor:pointer}
 #toast{z-index:20}
-#wordbar{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:4;background:rgba(250,244,230,.94);border:2px solid var(--line);border-radius:18px;padding:5px 16px;font-size:18px;white-space:nowrap}
+#wordbar{position:fixed;top:var(--hudB,calc(58px + env(safe-area-inset-top,0px)));left:50%;transform:translateX(-50%);z-index:4;background:rgba(250,244,230,.94);border:2px solid var(--line);border-radius:18px;padding:5px 16px;font-size:18px;white-space:nowrap}
 #wordbar span{display:inline-block;min-width:1.4em;text-align:center;margin:0 2px;border-bottom:2px solid var(--line);font-weight:700;color:var(--muted)}#wordbar span.got{color:var(--seal)}
 body.vn #wordbar{display:none}
-#compass{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:calc(58px + env(safe-area-inset-top,0px));width:92px;z-index:12;pointer-events:none;text-align:center}
+#compass{position:fixed;left:calc(12px + env(safe-area-inset-left,0px));top:var(--hudB,calc(58px + env(safe-area-inset-top,0px)));width:92px;z-index:12;pointer-events:none;text-align:center}
 body.vnfull #compass{display:none}
 #compass svg{width:92px;height:92px;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 #compass .cap{font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1px 4px;margin-top:2px}
@@ -197,6 +205,7 @@ body.vnfull #compass{display:none}
   <div class="chip" id="main" hidden>主線：《明湖長卷》 <b id="cards">0</b>/8 <span id="scrollbar" class="sb"></span></div>
   <div class="chip" id="hint">下一站：鵲華橋</div>
   <div class="chip" id="scoreChip" hidden>得分 <b id="score">0</b></div>
+  <button class="chip" id="autoBtn" type="button" aria-pressed="false" title="開了以後，會自動走到下一站">🧭 自動帶路</button>
   <button class="chip" id="modeChip" type="button" aria-label="切換一般模式或挑戰模式">📜 一般模式</button>
   <button class="chip" id="musBtn" type="button" aria-label="配樂開關">♪ 配樂</button>
 </div>
@@ -259,6 +268,11 @@ body.vnfull #compass{display:none}
   <h1>跟著老殘遊明湖</h1>
   <p>你是老殘的小藥童。<br>幫鵲華橋邊的老畫師，把大明湖的景色一處一處帶回來，完成《明湖長卷》。</p><p>點地面走路、點湖面坐船，也可以用<b>鍵盤方向鍵</b>或右下角的方向按鈕。跟著<b style="color:#b23a2a">紅色箭頭</b>和左上角的羅盤找下一站。到了景點，讀課文、回答老殘的問題。</p>
   <p class="note">📌 小藥童和老畫師是遊戲裡加的角色，課文裡沒有；老殘走的路線、看到的景色都照課文。</p>
+  <div class="opts" role="group" aria-label="遊戲設定">
+    <label><input type="radio" name="smode" value="n" checked>📜 一般模式（可看課文線索）</label>
+    <label><input type="radio" name="smode" value="ch">🔥 挑戰模式（沒有線索）</label>
+    <label><input type="checkbox" id="sauto">🧭 自動帶路（不用自己找路）</label></div>
+  <div class="rule">📝 <b>計分</b>：答題 95 分＋接蓮蓬最多 5 分＝100 分。第一次就答對才算分；答錯一次會有「方法提示」，可以再試一次。<br>🔎 有幾題要<b>兩步</b>：先選答案，再找出課文裡支持答案的句子。<br>以上設定，遊戲中都可以在右上角再切換。</div>
   <p style="font-size:13px">有配樂和漁歌，建議戴耳機或打開聲音 🔊（右上角可以關配樂）</p>
   <div class="row"><button id="go">出發</button><button id="resume" class="ghost" type="button" hidden></button></div>
 </div></div>
@@ -667,6 +681,8 @@ const scrollBar=document.getElementById('scrollbar');
 CARDS.forEach(c=>{ const s=document.createElement('span'); s.title=c; scrollBar.appendChild(s); });
 function getCard(n){ if(!n||gotCards[n])return; gotCards[n]=1; cards++; document.getElementById('cards').textContent=cards;
   scrollBar.children[CARDS.indexOf(n)].className='on'; toast('《明湖長卷》畫上一段：'+n); tone('ding'); }
+function hudLayout(){ const h=document.querySelector('.hud'); if(!h) return; const r=h.getBoundingClientRect(); document.documentElement.style.setProperty('--hudB',Math.round(r.bottom+8)+'px'); }
+addEventListener('resize',hudLayout); if(window.ResizeObserver) new ResizeObserver(hudLayout).observe(document.querySelector('.hud')); setTimeout(hudLayout,50);
 let toastT; function toast(s){ const t=document.getElementById('toast'); t.textContent=s; t.style.opacity=1; clearTimeout(toastT); toastT=setTimeout(()=>t.style.opacity=0,2000); }
 function updHint(){ const h=document.getElementById('hint'); const id=order[step];
   document.getElementById('main').hidden=!mainShown;
@@ -878,14 +894,18 @@ function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curT
 // ---------- 模式：學生自己切換。一般模式有「看課文線索」；挑戰模式不給線索 ----------
 const CH={on:false,ever:false}; let curTask='', lotusN=0, evDone=0; const EV_MAX=6;
 try{ if(localStorage.getItem('mh_mode')==='ch'){ CH.on=CH.ever=true; } }catch(_){}
+function readStartOpts(){ const m=document.querySelector('input[name=smode]:checked'); CH.on=!!(m&&m.value==='ch'); if(CH.on) CH.ever=true;
+  try{ localStorage.setItem('mh_mode',CH.on?'ch':'n'); }catch(_){} modeChip(); setAuto(document.getElementById('sauto').checked); }
 function modeChip(){ const c=document.getElementById('modeChip'); if(!c) return; c.textContent=CH.on?'🔥 挑戰模式':'📜 一般模式'; c.classList.toggle('ch',CH.on); c.title='點一下切換模式'; }
 document.getElementById('modeChip').addEventListener('click',e=>{ e.stopPropagation(); CH.on=!CH.on; if(CH.on) CH.ever=true; try{ localStorage.setItem('mh_mode',CH.on?'ch':'n'); }catch(_){} modeChip();
   toast(CH.on?'🔥 挑戰模式：下一題起不給課文線索':'📜 一般模式：下一題起可以看課文線索'); });
 modeChip();
-// ---------- 計分：答題 95 分（第一次就答對的比例）＋接蓮蓬最多 5 分 = 100 分 ----------
+try{ if(CH.on) document.querySelector('input[name=smode][value=ch]').checked=true; document.getElementById('sauto').checked=localStorage.getItem('mh_auto')==='on'; }catch(_){}
+// ---------- 計分：答題 95 分（每個第一次就答對的挑戰 95÷37 分）＋接蓮蓬最多 5 分 = 100 分 ----------
 function lotusPts(){ return Math.min(5,Math.round(lotusN*5/8)); }
-function calcScore(){ const n=answered.length; return (n?Math.round(95*answered.filter(a=>a.first).length/n):0)+lotusPts(); }
-function scoreShow(){ const c=document.getElementById('scoreChip'); if(!c) return; c.hidden=!answered.length; document.getElementById('score').textContent=calcScore(); }
+const QTOTAL=37;   // 一輪遊戲的挑戰數（題目＋小任務＋撈字卡），每個第一次就答對得 95÷37 分，越玩分數越高
+function calcScore(){ const n=Math.max(QTOTAL,answered.length); return Math.min(100,Math.round(95*answered.filter(a=>a.first).length/n)+lotusPts()); }
+function scoreShow(){ const c=document.getElementById('scoreChip'); if(!c) return; c.hidden=step<0&&!answered.length; document.getElementById('score').textContent=calcScore(); }
 // ---------- 答錯時的「方法提示」：依題目類型提醒怎麼想 ----------
 function methodTip(q){ const s=q.q;
   if(/說錯|哪裡不對/.test(s)) return '回到課文找那一句，一個字一個字對照，找出不一樣的地方。';
@@ -897,7 +917,8 @@ function methodTip(q){ const s=q.q;
   if(/心情|感受|感覺|表示他|透露/.test(s)) return '看人物說的話和動作，例如「嘆賞不絕」「暗暗點頭」「實在奇絕」。';
   return '把題目裡的人、事、景拿去和課文對照，先刪掉課文沒寫的選項。'; }
 // ---------- 兩步驟證據題：答對後再選「課文哪一句最能支持」（每次遊戲最多 6 題） ----------
-function canEvidence(q){ if(!q._id||!q.hl||q.o.length<2||/^(word|task)\./.test(q._id)||evDone>=EV_MAX) return false;
+function canEvidence(q){ if(!q._id||!q.hl||q.o.length<2||/^(word|task|fin|finQ)\./.test(q._id)||evDone>=EV_MAX) return false;
+  if(/順序|安排|哪一句|哪一種感|哪種修辭|什麼修辭|什麼寫法|是什麼意思|指的是什麼|是指什麼/.test(q.q)) return false;   /* 全文性的題目、問字義或修辭的題目，不適合問「哪一句支持」 */
   const quotes=(q.q.match(/「[^」]+」/g)||[]).map(x=>x.slice(1,-1)); if(quotes.some(x=>q.hl.includes(x)||x.includes(q.hl))) return false;  /* 題目已經引了這一句，就不再問證據 */
   return Math.random()<0.6; }
 function evidenceOpts(q){ const p=paraOf(q.hl), seen=new Set([q.hl]), pool=[];
@@ -995,21 +1016,21 @@ const TASKS={
            {c:'青的靛青',k:'blue',a:'天空和湖水',why:'青藍色的是天空和湖水：晴朗的天空，和澄淨如鏡的大明湖。'},
            {c:'綠的碧綠',k:'green',a:'蒼松翠柏',why:'碧綠色的是蒼松翠柏：山上一片青綠的松樹和柏樹。'}];
   const ITEMS=['丹楓和僧樓紅牆','蘆花和僧樓白牆','天空和湖水','蒼松翠柏']; const COL={red:'#d0402a',white:'#f4f1ea',blue:'#2f5d8c',green:'#3d8a4a'};
-  let k=0, miss=false, picked=null; const got={};
+  let k=0, miss=false, picked=null, lastWhy=''; const got={};
   const render=()=>{ const c=C[k];
-    txt.innerHTML='<span class="cdot" style="background:'+COL[c.k]+'"></span>「<b>'+c.c+'</b>」，指的是山上的什麼？'
+    txt.innerHTML=(lastWhy?'<div class="why"><b class="ok">對！</b>'+lastWhy+'</div>':'')+'<span class="cdot" style="background:'+COL[c.k]+'"></span>「<b>'+c.c+'</b>」，指的是山上的什麼？'
       +'<div class="colors">'+C.map((x,i)=>'<span class="'+(i<k?'got':i===k?'now':'')+'">'+x.c.slice(0,2)+'：'+(i<k?'<b>'+x.a+'</b>':'＿＿')+'</span>').join('　')+'</div>';
     quoteEl.innerHTML='<span class="qt">線索：蒼松翠柏……一株半株的丹楓……湖岸那一排白花……還有頭上的天空、腳下的湖水</span>';
     ch.innerHTML=''; ITEMS.forEach(it=>{ const b=document.createElement('button'); b.type='button'; b.className='opt tile'; b.textContent=it; if(got[it]){ b.disabled=true; b.classList.add('right'); }
       b.addEventListener('click',e=>{ e.stopPropagation(); if(b.disabled) return;
         if(it===c.a){ got[it]=1; tone('pop'); k++;
-          if(k<C.length){ render(); toast(c.why); }
+          if(k<C.length){ lastWhy=c.why; render(); }
           else { tone('ding'); txt.innerHTML='<b class="ok">全部配對正確！</b><br>紅：丹楓、僧樓紅牆　白：蘆花、僧樓白牆　青：天空和湖水　綠：蒼松翠柏<br>老殘用四種顏色，把眼前的楓葉、寺廟、蘆花、天空湖水、松柏一次寫出來。';
             quoteEl.innerHTML=''; ch.innerHTML='';
             pic.style.transform='scale(1.04)';
             showTags([{x:900,y:335,t:'丹楓（火紅）'},{x:1160,y:410,t:'蘆花（雪白）'},{x:1450,y:130,t:'天空（靛青）',c:'blue'},{x:330,y:650,t:'湖水（靛青）',c:'blue'},{x:720,y:370,t:'蒼松翠柏（碧綠）',c:'blue'},{x:630,y:222,t:'僧樓紅牆（火紅）'},{x:520,y:318,t:'僧樓白牆（雪白）'}]);
-            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓和僧樓紅牆、白—蘆花和僧樓白牆、青—天空和湖水、綠—蒼松翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
-        else { if(!miss){ miss=true; picked=c.c.slice(0,2)+'配'+it; } b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
+            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓和僧樓紅牆、白—蘆花和僧樓白牆、青—天空和湖水、綠—蒼松翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); ch.lastChild.addEventListener('click',()=>{ clearTags(); pic.style.transform=''; }); } }
+        else { if(!miss){ miss=true; picked=c.c.slice(0,2)+'配'+it; } lastWhy=''; quoteEl.innerHTML='<span class="tip">不對喔！再看看圖上哪裡是「'+c.c.slice(-2)+'」色的。</span>'; b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
       ch.appendChild(b); }); };
   render(); },
  // 一聲漁唱：漁人撐船出現、唱歌、音符飄起來
@@ -1222,10 +1243,10 @@ canvas.addEventListener('pointerdown',e=>{ down={x:e.clientX,y:e.clientY}; });
 canvas.addEventListener('pointerup',e=>{ if(!down) return; const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y); down=null; if(moved>12) return;
   if(talking){ if(!busy) next(); return; } if(cineMode||mode==='turn') return;
   ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc,camera);
-  const hit=new T.Vector3(); if(ray.ray.intersectPlane(plane,hit)) setTarget(hit.x,hit.z); });
+  const hit=new T.Vector3(); if(ray.ray.intersectPlane(plane,hit)){ autoPath=[]; AUTO.key=null; autoPauseNow(); setTarget(hit.x,hit.z); } });
 
 // ---------- 開始 ----------
-document.getElementById('go').addEventListener('click',()=>{ document.getElementById('start').hidden=true; clearSave(); ac(); musicStart();
+document.getElementById('go').addEventListener('click',()=>{ readStartOpts(); document.getElementById('start').hidden=true; clearSave(); ac(); musicStart();
   playIntro(()=>{ play(SCENES.pro,()=>{ step=0; updHint(); saveGame(); }); updHint(); }); });
 
 function resize(){ renderer.setSize(innerWidth,innerHeight,false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
@@ -1503,7 +1524,7 @@ function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elap
   if(mode==='inner'){ INNER.forEach((w,i)=>{ innerLabels[i].classList.toggle('next',i===innerStep); innerLabels[i].classList.toggle('done',i<innerStep); place(innerLabels[i],w.x,6,w.z); }); }
   else if(mode==='turn'){ stations.forEach(s=>s.el.style.display='none'); }
   else { innerLabels.forEach(e=>e.style.display='none'); stations.forEach(s=>place(s.el, s.x, s.id==='lixia'?8.5:s.id==='tie'?8:s.id==='shui'?6:s.id==='que'?5:2, s.z)); }
-  if(mode==='turn'&&turnT>4.3) place(mLabel,-15,74,-195); else mLabel.style.display='none';
+  if(mode==='turn'&&turnT>4.3){ place(mLabel,-15,74,-195); const lx=parseFloat(mLabel.style.left)||0; mLabel.style.left=Math.max(170,Math.min(innerWidth-80,lx))+'px'; const ty=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hudB'))||60; if((parseFloat(mLabel.style.top)||0)<ty+70) mLabel.style.top=(ty+70)+'px'; } else mLabel.style.display='none';
   requestAnimationFrame(loop); }
 const pv=new T.Vector3();
 function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.x)>1.1||Math.abs(pv.y)>1.1){ el.style.display='none'; return; } el.style.display=''; el.style.left=((pv.x+1)/2*innerWidth)+'px'; el.style.top=((1-pv.y)/2*innerHeight)+'px'; }
@@ -1532,16 +1553,32 @@ const helpBtn=document.getElementById('helpBtn'); const LOST={key:null,best:1e9,
 function lostTarget(){ if(talking||mode==='turn'||step<0) return null;
   if(mode==='lake' && wordKey){ const k=tokens.find(o=>!o.got && o.i===wordGot); if(k) return {key:'w'+wordKey+wordGot,x:k.x,z:k.z}; }
   const s=nextStation(); return s?{key:(mode==='inner'?'i':'s')+(s.name||s.id),x:s.x,z:s.z}:null; }
-function updLost(dt){ const g=lostTarget(); if(!g){ helpBtn.hidden=true; return; }
+function updLost(dt){ const g=lostTarget(); if(!g||AUTO.on){ helpBtn.hidden=true; return; }
   if(g.key!==LOST.key){ LOST.key=g.key; LOST.best=1e9; LOST.t=0; LOST.warned=false; helpBtn.hidden=true; }
   const d=Math.hypot(P.x-g.x,P.z-g.z); if(d<LOST.best-2){ LOST.best=d; LOST.t=0; } else LOST.t+=dt;
   if(LOST.t>18 && !LOST.warned){ LOST.warned=true; toast('找不到路嗎？跟著紅色箭頭和羅盤走'); }
   if(LOST.t>30 && helpBtn.hidden){ helpBtn.textContent=mode==='inner'?'👣 迷路了？請老殘帶路':'🚣 迷路了？請船家帶路'; helpBtn.hidden=false; } }
-helpBtn.addEventListener('click',()=>{ const g=lostTarget(); helpBtn.hidden=true; LOST.t=0; LOST.best=1e9; if(!g) return;
-  autoPath=[]; if(mode==='inner' && g.x<-3 && P.x>-3) autoPath=CORR.map(p=>[p[0],p[1]]).filter(p=>p[0]>=g.x-1);   // 要過荷池：先沿著迴廊走
-  autoPath.push([g.x,g.z]); const f=autoPath.shift(); target=new T.Vector3(f[0],0.3,f[1]); });
+helpBtn.addEventListener('click',()=>{ const g=lostTarget(); helpBtn.hidden=true; LOST.t=0; LOST.best=1e9; if(!g) return; guideTo(g); });
+function guideTo(g){
+  autoPath=[];
+  if(mode==='inner' && g.x<POND.x2+1 && P.x>CORR[CORR.length-1][0]+0.5){   // 要過荷池（或已經走在迴廊上）：沿著迴廊剩下的部分往東走
+    autoPath=CORR.filter(p=>p[0]<P.x-0.3 && p[0]>=g.x-1).map(p=>[p[0],p[1]]); }
+  autoPath.push([g.x,g.z]); const f=autoPath.shift(); target=new T.Vector3(f[0],0.3,f[1]); AUTO.key=g.key; }
+// 自動帶路：打開後，沒有在對話、也沒有自己操作時，就自動走（划）到下一站或下一張字卡
+const AUTO={on:false,pause:0,key:null}; const autoBtn=document.getElementById('autoBtn');
+try{ AUTO.on=localStorage.getItem('mh_auto')==='on'; }catch(_){}
+function autoLabel(){ autoBtn.classList.toggle('on',AUTO.on); autoBtn.setAttribute('aria-pressed',AUTO.on); autoBtn.textContent=AUTO.on?'🧭 自動帶路：開':'🧭 自動帶路：關'; }
+function setAuto(v){ AUTO.on=v; try{ localStorage.setItem('mh_auto',v?'on':'off'); }catch(_){} autoLabel(); if(!v){ autoPath=[]; target=null; } }
+autoBtn.addEventListener('click',e=>{ e.stopPropagation(); setAuto(!AUTO.on); toast(AUTO.on?'🧭 自動帶路：會自己走到下一站':'自動帶路關了，自己找路吧！'); });
+autoLabel();
+function autoPauseNow(){ AUTO.pause=Date.now()+5000; }    // 自己操作時，自動帶路先停 5 秒
+setInterval(()=>{ if(!AUTO.on||talking||mode==='turn'||step<0||cineMode||Date.now()<AUTO.pause) return;
+  if(!document.getElementById('start').hidden) return;
+  const g=lostTarget(); if(!g) return;
+  if(target||autoPath.length){ if(AUTO.key===g.key) return; }
+  guideTo(g); },400);
 setInterval(()=>{ if(!target && autoPath.length && !talking){ const f=autoPath.shift(); target=new T.Vector3(f[0],0.3,f[1]); } },200);
-addEventListener('keydown',()=>{ autoPath=[]; }); document.getElementById('pad').addEventListener('pointerdown',()=>{ autoPath=[]; });
+addEventListener('keydown',e=>{ if(/Arrow|Key[WASD]/.test(e.code)){ autoPath=[]; autoPauseNow(); } }); document.getElementById('pad').addEventListener('pointerdown',()=>{ autoPath=[]; autoPauseNow(); });
 
 // ---------- 課文朗讀（用平板內建的中文語音，iPad Safari 也能用） ----------
 const TTS={v:null,ok:'speechSynthesis' in window};
