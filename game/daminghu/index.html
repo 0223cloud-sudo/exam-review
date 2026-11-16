@@ -393,23 +393,25 @@ function ridge(z,w,base,amp,pk,cTop,cBot,ph){ const N=200, top=[];
   const m=new T.Mesh(g,new T.MeshBasicMaterial({vertexColors:true,side:T.DoubleSide})); m.position.z=z; scene.add(m);
   return x=>{ const u=Math.max(0,Math.min(N-1e-6,(x+w/2)/w*N)), i=Math.floor(u), f=u-i; return top[i][1]*(1-f)+top[i+1][1]*f; }; }
 ridge(-330,1100,62,16,[[-90,40,90],[180,30,80]],'#9db3bf','#e6e1cf',1.3);
-ridge(-255,860,44,12,[[-150,26,55],[60,34,60],[270,22,55]],'#5d86a0','#d3d6c6',2.2);
-const qfH=ridge(-185,660,20,7,[[-20,40,60],[-120,22,42],[105,25,48],[220,14,40]],'#2c5d55','#a9b38c',0.4);   // 千佛山（主峰）
-const frontH=ridge(-140,560,6,4,[[-170,9,40],[60,7,55],[210,11,45]],'#4a7a50','#bfae74',3.1);
-ridge(255,900,22,8,[[0,14,90]],'#8aa3a8','#e3dcc6',0.9);   // 北方遠山（朝北時看得到）
-// 千佛山上的梵宇僧樓、蒼松翠柏、丹楓（貼在山的正面）
-{ const onQF=(n,lo,hi)=>{ const r=[]; for(let i=0;i<n;i++){ const x=(rnd()-.5)*560, h=qfH(x); r.push([x,h*(lo+rnd()*(hi-lo)),-183.5]); } return r; };
-  const pg=new T.ConeGeometry(1.5,6,6); pg.translate(0,3,0); inst(pg,lam('#1f4a3c'),onQF(150,0.15,0.9),1,false);
-  inst(pg,lam('#3d7a4a'),onQF(70,0.1,0.75),0.8,false);
-  const mg=new T.IcosahedronGeometry(2.2,0); mg.translate(0,2,0); inst(mg,lam('#c8372a'),onQF(42,0.2,0.85),1,false); inst(mg,lam('#e07a2e'),onQF(14,0.2,0.8),0.9,false);
-  const tw=new T.BoxGeometry(6,3.4,2); tw.translate(0,1.7,0); const tr=new T.ConeGeometry(4.6,2.4,4); tr.rotateY(Math.PI/4); tr.scale(1,1,0.5); tr.translate(0,4.4,0);
-  const TS=[[-30,0.62],[-5,0.8],[25,0.55],[-75,0.5],[70,0.6],[130,0.45],[-140,0.4],[0,0.4]].map(([x,f])=>[x,qfH(x)*f,-182.5]);
-  inst(tw,lam('#f4f0e6'),TS.filter((_,i)=>i%3),1,false); inst(tw,lam('#b8402c'),TS.filter((_,i)=>!(i%3)),1,false); inst(tr,lam('#2a3e48'),TS,1,false);
-  const fp=[]; for(let i=0;i<55;i++){ const x=(rnd()-.5)*520; fp.push([x,frontH(x)*(0.2+rnd()*0.7),-138.5]); }
-  const rg=new T.IcosahedronGeometry(2.4,0); rg.translate(0,2,0); inst(rg,lam('#5b8a5a'),fp.filter((_,i)=>i%3),1,false); inst(rg,lam('#c0582e'),fp.filter((_,i)=>!(i%3)),0.9,false); }
+// 千佛山「紙雕」：Canva 畫的三層青綠山水（遠山、千佛山、南岸山丘），前後排開，像一層一層的剪紙
+// 每一層後面加一片淡淡的影子，看得出層次；湖面也會倒映出這三層
+const QFL=[];
+{ const ld=new T.TextureLoader();
+  const layer=(url,w,h,x,y,z,sh)=>{ const tex=ld.load(url); tex.anisotropy=4;
+    const g=new T.PlaneGeometry(w,h); g.translate(0,h/2,0);
+    const m=new T.Mesh(g,new T.MeshBasicMaterial({map:tex,transparent:true,alphaTest:0.04,depthWrite:true,side:T.DoubleSide}));
+    m.position.set(x,y,z); scene.add(m); QFL.push(m);
+    if(sh){ const s2=new T.Mesh(g,new T.MeshBasicMaterial({map:tex,color:'#1c2a26',transparent:true,opacity:0.32,depthWrite:false,side:T.DoubleSide}));
+      s2.position.set(x+sh,y-sh*0.6,z-sh*1.6); scene.add(s2); }
+    return m; };
+  layer('img/qf_far.webp',820,133,-30,-30,-300,0);                 // 遠山（淡青）
+  layer('img/qf_mid.webp',330,94,-15,-24,-195,2.5);                 // 千佛山：梵宇僧樓、蒼松翠柏、丹楓
+  layer('img/qf_front.webp',250,49,-200,-30,-150,1.5);              // 南岸山丘和蘆花（幾段接起來）
+  layer('img/qf_front.webp',250,49,150,-30,-152,1.5);
+  layer('img/qf_front.webp',250,49,-25,-31,-147,1.5); }
 // 山間的雲霧
 { const ct=(()=>{ const c=document.createElement('canvas'); c.width=256; c.height=64; const x=c.getContext('2d'); const g=x.createRadialGradient(128,32,4,128,32,120); g.addColorStop(0,'rgba(255,252,240,.9)'); g.addColorStop(1,'rgba(255,252,240,0)'); x.fillStyle=g; x.fillRect(0,0,256,64); return new T.CanvasTexture(c); })();
-  [[-160,-205,18],[40,-210,24],[200,-200,16],[-60,-160,9],[150,-160,8]].forEach(([x,z,y])=>{ const s=new T.Sprite(new T.SpriteMaterial({map:ct,transparent:true,opacity:.75,depthWrite:false})); s.scale.set(160,22,1); s.position.set(x,y,z); scene.add(s); }); }
+  [[-200,-250,16],[160,-255,20],[-120,-205,10],[110,-200,12],[-40,-170,5]].forEach(([x,z,y])=>{ const s=new T.Sprite(new T.SpriteMaterial({map:ct,transparent:true,opacity:.75,depthWrite:false})); s.scale.set(160,22,1); s.position.set(x,y,z); scene.add(s); }); }
 
 // ---------- 湖邊的柳樹、樹、蘆葦、荷葉 ----------
 { const W=[]; for(let i=0;i<70;i++){ const a=rnd()*Math.PI*2, k=1.12+rnd()*0.22, x=Math.cos(a)*RX*k, z=Math.sin(a)*RZ*k;
@@ -517,7 +519,7 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 // ---------- 圖片 ----------
-const BG={jinan:'img/jinan.jpg',que:'img/que.jpg',lixia:'img/lixia.jpg',tie:'img/tie.jpg',qianfo:'img/qianfo.jpg',reed:'img/reed.jpg',shui:'img/shui.jpg',lotus:'img/lotus.jpg'};
+const BG={jinan:'img/jinan.jpg',que:'img/que.jpg',lixia:'img/lixia.jpg',tie:'img/tie.jpg',qianfo:'img/qianfo.jpg',reflect:'img/reflect.jpg',inn:'img/inn.jpg',reed:'img/reed.jpg',shui:'img/shui.jpg',lotus:'img/lotus.jpg'};
 const PPL={'老殘':'ppl/lao.png','小藥童':'ppl/kid.png','船家':'ppl/boat.png','老婆婆':'ppl/granny.png','老畫師':'ppl/painter.png'};
 const IMG={}; Object.entries(BG).forEach(([k,u])=>{ const i=new Image(); i.src=u; IMG[k]=i; }); Object.values(PPL).forEach(u=>{ new Image().src=u; });
 function pixels(key){ const im=IMG[key], W=im.naturalWidth||1600, H=im.naturalHeight||900; const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d'); x.drawImage(im,0,0,W,H); return {W,H,img:x.getImageData(0,0,W,H)}; }
@@ -535,8 +537,9 @@ const SCENES={
   {w:'老殘',t:'一路秋山紅葉，老圃黃花，頗不寂寞。',hl:'一路秋山紅葉，老圃黃花，頗不寂寞'},
   {w:'小藥童',t:'先生，濟南城裡怎麼到處都是水？'},
   {w:'老殘',t:'你看，家家泉水，戶戶垂楊，比那江南風景覺得更為有趣！',hl:'家家泉水，戶戶垂楊'},
+  {bg:'inn',cap:'小布政司街　高陞店'},
   {w:'旁白',t:'當晚住進高陞店，開發了車價酒錢，胡亂吃點晚飯，也就睡了。',hl:'開發了車價酒錢'},
-  {w:'旁白',t:'第二天清晨，老殘搖著串鈴滿街走了一趟，虛應一應故事。',hl:'虛應一應故事'},
+  {w:'旁白',t:'第二天清晨，老殘搖著串鈴滿街走了一趟，虛應一應故事。',hl:'虛應一應故事',act:()=>tone('bell')},
   {w:'老殘',t:'小藥童，昨天到今天的事，你可記住了？我考考你。'},
   {quiz:'pro',n:2},
   {bg:'que'},
@@ -654,7 +657,7 @@ const stations=[
 const GOALS={inner:'在鐵公祠裡面走走看看',lixia:'點湖面，往北划到歷下亭',tie:'點湖面，往西划到鐵公祠',shui:'沿著北岸往東走，到古水仙祠',he:'划船到歷下亭後面的荷花叢',end:'划回鵲華橋，把景色交給老畫師'};
 const order=['lixia','tie','inner','he','end'];
 const CARDS=['鵲華橋','歷下亭','鐵公祠','千佛山','明湖倒影','蘆花絨毯','古水仙祠','蓮蓬'];
-const CARD_BG={鵲華橋:'que',歷下亭:'lixia',鐵公祠:'tie',千佛山:'qianfo',明湖倒影:'qianfo',蘆花絨毯:'reed',古水仙祠:'shui',蓮蓬:'lotus'};
+const CARD_BG={鵲華橋:'que',歷下亭:'lixia',鐵公祠:'tie',千佛山:'qianfo',明湖倒影:'reflect',蘆花絨毯:'reed',古水仙祠:'shui',蓮蓬:'lotus'};
 let step=-1, mainShown=false, goalNow=null; const visited={}; const gotCards={}; let cards=0;
 const answered=[];
 const labelBox=document.getElementById('labels');
@@ -673,6 +676,8 @@ function updHint(){ const h=document.getElementById('hint'); const id=order[step
 // ---------- 音效（不用音檔，用程式合成） ----------
 let AC=null; function ac(){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){} return AC; }
 function tone(kind){ const a=ac(); if(!a) return; const t0=a.currentTime;
+  const FILE={rustle:['rustle',0.9],flap:['birds',0.9],bell:['bell',0.7],oar:['oar',0.5]}[kind];
+  if(FILE){ loadSounds(); if(playBuf(FILE[0],FILE[1])) return; if(kind==='bell'||kind==='oar') return; }
   if(kind==='ding'){ [880,1320].forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.frequency.value=f; g.gain.setValueAtTime(0.12,t0+i*0.08); g.gain.exponentialRampToValueAtTime(0.001,t0+i*0.08+0.5); o.connect(g).connect(a.destination); o.start(t0+i*0.08); o.stop(t0+i*0.08+0.5); }); }
   if(kind==='bad'){ const o=a.createOscillator(),g=a.createGain(); o.type='triangle'; o.frequency.setValueAtTime(220,t0); o.frequency.linearRampToValueAtTime(160,t0+0.2); g.gain.setValueAtTime(0.12,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.3); o.connect(g).connect(a.destination); o.start(t0); o.stop(t0+0.3); }
   if(kind==='song'){ const notes=[392,440,523,440,392,330,392]; notes.forEach((f,i)=>{ const o=a.createOscillator(),g=a.createGain(); o.type='sine'; o.frequency.value=f; const s=t0+i*0.32; g.gain.setValueAtTime(0,s); g.gain.linearRampToValueAtTime(0.09,s+0.05); g.gain.exponentialRampToValueAtTime(0.001,s+0.45); o.connect(g).connect(a.destination); o.start(s); o.stop(s+0.5); }); }
@@ -696,11 +701,26 @@ function pluck(f,t,vel,dest){ const a=AC; if(!a) return; const o=a.createOscilla
   o.connect(lp); o2.connect(g2).connect(lp); lp.connect(g); g.connect(dest); const r=reverb(); if(r){ const s=a.createGain(); s.gain.value=0.5; g.connect(s).connect(r); }
   o.start(t); o2.start(t); o.stop(t+2.9); o2.stop(t+2.9); }
 // ---------- 配樂：五聲音階的古箏，隨機但好聽地慢慢彈 ----------
-const MUS={on:true,bus:null,next:0,idx:5,beat:0,timer:null,duck:1};
+const MUS={on:true,bus:null,next:0,idx:5,beat:0,timer:null,duck:1,amb:null,src:null,useFile:false};
+// ---------- 音檔：古箏配樂（約 1 分鐘，彈完停一下再彈）、湖面水聲、划槳、串鈴、水鳥、荷葉擦船 ----------
+const SND={}; let sndLoading=null;
+function loadSounds(){ const a=AC; if(!a||sndLoading) return sndLoading; 
+  sndLoading=Promise.all(['music','lake','oar','bell','birds','rustle'].map(n=>fetch('audio/'+n+'.mp3').then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); })
+    .then(b=>new Promise((ok,no)=>a.decodeAudioData(b,ok,no))).then(buf=>{ SND[n]=buf; }).catch(()=>{})));
+  return sndLoading; }
+function playBuf(n,vol,dest,rate){ const a=AC; if(!a||!SND[n]) return null; const s=a.createBufferSource(); s.buffer=SND[n]; if(rate) s.playbackRate.value=rate;
+  const g=a.createGain(); g.gain.value=vol; s.connect(g).connect(dest||a.destination); s.start(); return s; }
+function musicLoop(){ const a=AC; if(!a||!SND.music||!MUS.bus) return; if(MUS.src) return;
+  MUS.src=playBuf('music',0.75,MUS.bus); if(!MUS.src) return;
+  MUS.src.onended=()=>{ MUS.src=null; setTimeout(musicLoop,9000+Math.random()*6000); }; }   // 彈完休息 9～15 秒，只留湖水聲
+function ambStart(){ const a=AC; if(!a||!SND.lake||MUS.amb) return; const s=a.createBufferSource(); s.buffer=SND.lake; s.loop=true;
+  const g=a.createGain(); g.gain.value=0.55; s.connect(g).connect(MUS.bus); s.start(); MUS.amb=s; }
 try{ MUS.on=localStorage.getItem('mh_music')!=='off'; }catch(e){}
 const PENTA=[146.83,164.81,185,220,246.94,293.66,329.63,369.99,440,493.88,587.33,659.25];
 function musicStart(){ const a=ac(); if(!a) return; if(!MUS.bus){ MUS.bus=a.createGain(); MUS.bus.gain.value=0; MUS.bus.connect(a.destination); }
-  MUS.next=Math.max(MUS.next,a.currentTime+0.3); musicGain(); if(!MUS.timer) MUS.timer=setInterval(musicTick,200); }
+  musicGain(); if(MUS.useFile||MUS.timer) return;
+  loadSounds().then(()=>{ if(SND.music){ MUS.useFile=true; musicLoop(); ambStart(); }
+    else if(!MUS.timer){ MUS.next=Math.max(MUS.next,a.currentTime+0.3); MUS.timer=setInterval(musicTick,200); } }); }
 function musicGain(){ if(!MUS.bus||!AC) return; MUS.bus.gain.setTargetAtTime(MUS.on?0.85*MUS.duck:0,AC.currentTime,0.4); }
 function duck(v){ MUS.duck=v; musicGain(); }
 function musicTick(){ const a=AC; if(!a||!MUS.on||!MUS.bus) return; const B=0.6;
@@ -740,7 +760,7 @@ function layoutPic(){ const W=innerWidth, H=innerHeight, s=Math.min(W/1600,H/900
   pic.style.left=(W-w)/2+'px'; pic.style.top=(H-h)*0.3+'px'; pic.style.width=w+'px'; pic.style.height=h+'px';
   const d=Math.min(window.devicePixelRatio||1,2.5); ov.width=Math.round(w*d); ov.height=Math.round(h*d); }
 addEventListener('resize',layoutPic); layoutPic();
-const CAPS={jinan:'濟南府　家家泉水，戶戶垂楊',que:'鵲華橋',lixia:'歷下亭',tie:'鐵公祠',qianfo:'朝南一望　對面是千佛山',reed:'湖的南岸　一片蘆花',shui:'古水仙祠',lotus:'歷下亭後　荷花叢'};
+const CAPS={jinan:'濟南府　家家泉水，戶戶垂楊',inn:'小布政司街　高陞店',reflect:'明湖倒影',que:'鵲華橋',lixia:'歷下亭',tie:'鐵公祠',qianfo:'朝南一望　對面是千佛山',reed:'湖的南岸　一片蘆花',shui:'古水仙祠',lotus:'歷下亭後　荷花叢'};
 let capT; function setCap(s){ clearTimeout(capT); if(!s){ capEl.style.opacity=0; capT=setTimeout(()=>capEl.hidden=true,500); return; } capEl.textContent=s; capEl.hidden=false; requestAnimationFrame(()=>capEl.style.opacity=1); }
 // 圖上的標示（座標用原圖 1600×900 的位置）
 function addTag(g){ const e=document.createElement('div'); e.className='tag'+(g.c?' '+g.c:''); e.textContent=g.t; e.style.left=(g.x/16)+'%'; e.style.top=(g.y/9)+'%'; tagsEl.appendChild(e); }
@@ -988,7 +1008,7 @@ const TASKS={
             quoteEl.innerHTML=''; ch.innerHTML='';
             pic.style.transform='scale(1.04)';
             showTags([{x:900,y:335,t:'丹楓（火紅）'},{x:1160,y:410,t:'蘆花（雪白）'},{x:1450,y:130,t:'天空（靛青）',c:'blue'},{x:330,y:650,t:'湖水（靛青）',c:'blue'},{x:720,y:370,t:'蒼松翠柏（碧綠）',c:'blue'},{x:630,y:222,t:'僧樓紅牆（火紅）'},{x:520,y:318,t:'僧樓白牆（雪白）'}]);
-            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓、白—蘆花、青—蒼松、綠—翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
+            record({q:'千佛山四種顏色各指什麼',o:['紅—丹楓和僧樓紅牆、白—蘆花和僧樓白牆、青—天空和湖水、綠—蒼松翠柏'],hl:'梵宇僧樓，與那蒼松翠柏，高下相間'},!miss,picked); goBtn(); } }
         else { if(!miss){ miss=true; picked=c.c.slice(0,2)+'配'+it; } b.classList.add('shake'); tone('bad'); setTimeout(()=>b.classList.remove('shake'),400); } });
       ch.appendChild(b); }); };
   render(); },
@@ -1165,7 +1185,7 @@ function drawLongScroll(holder,fixed){ if(!holder) return; const PW=560, PH=360,
   CARDS.forEach((n,i)=>{ const px=END+i*(PW+G), py=60; const im=IMG[CARD_BG[n]];
     x.fillStyle='#d9ccaa'; x.fillRect(px-6,py-6,PW+12,PH+12);
     if(gotCards[n] && im && im.naturalWidth){ const r=PW/PH, ir=im.naturalWidth/im.naturalHeight; let sw=im.naturalWidth, sh=im.naturalHeight, sx=0, sy=0; if(ir>r){ sw=sh*r; sx=(im.naturalWidth-sw)/2; } else { sh=sw/r; sy=(im.naturalHeight-sh)/2; }
-      if(n==='千佛山'||n==='明湖倒影'){ sh=im.naturalHeight*0.52; sw=sh*r; sx=(im.naturalWidth-sw)/2; sy= n==='千佛山' ? im.naturalHeight*0.03 : im.naturalHeight*0.47; } /* 同一張圖：千佛山取上半的山，倒影取下半的湖面 */ x.drawImage(im,sx,sy,sw,sh,px,py,PW,PH); }
+      if(n==='千佛山'){ sh=im.naturalHeight*0.52; sw=sh*r; sx=(im.naturalWidth-sw)/2; sy=im.naturalHeight*0.03; } /* 千佛山取上半的山；倒影另有一張專用圖 */ x.drawImage(im,sx,sy,sw,sh,px,py,PW,PH); }
     else { x.fillStyle='#e9dfc6'; x.fillRect(px,py,PW,PH); x.fillStyle='#9a8a6a'; x.font='26px serif'; x.fillText('（這一段還沒收集）',px+PW/2,py+PH/2); }
     x.fillStyle='#2f2a24'; x.font='bold 34px "PingFang TC","Noto Serif TC",serif'; x.fillText(n,px+PW/2,py+PH+56); });
   if(fixed){ x.save(); x.translate(W-END-130,H-62); x.rotate(-0.15); x.strokeStyle='#c0392b'; x.lineWidth=6; x.strokeRect(-76,-38,152,76); x.fillStyle='#c0392b'; x.font='bold 32px "PingFang TC","Noto Serif TC",serif'; x.fillText('訂正完成',0,12); x.restore(); }
@@ -1425,7 +1445,7 @@ addEventListener('keyup',e=>{ const k=KEYMAP[e.code]; if(k) keys[k]=0; });
 document.querySelectorAll('#pad button').forEach(b=>{ const k=KEYMAP[b.dataset.k];
   b.addEventListener('pointerdown',e=>{ e.preventDefault(); keys[k]=1; b.setPointerCapture&&b.setPointerCapture(e.pointerId); });
   ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0)); });
-let mode='lake', turnT=0, turnFrom=0, turnCues=[];
+let oarT=0.4; let mode='lake', turnT=0, turnFrom=0, turnCues=[];
 const compassEl=document.querySelector('#compass svg'), faceEl=document.querySelector('#compass #facing');
 
 // ---------- 主迴圈 ----------
@@ -1446,6 +1466,7 @@ function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elap
       const nx=P.x+tmp.x*Math.min(sp,d), nz=P.z+tmp.z*Math.min(sp,d); if(!tryMove(nx,nz)) target=null;
       const want=Math.atan2(tmp.x,tmp.z); let da=want-heading; while(da>Math.PI)da-=Math.PI*2; while(da<-Math.PI)da+=Math.PI*2; heading+=da*Math.min(1,dt*8); } }
   inBoat=mode!=='inner'&&isWater(P.x,P.z);
+  if(inBoat&&moving&&MUS.on&&!talking){ oarT-=dt; if(oarT<=0){ oarT=1.5; tone('oar'); } } else oarT=0.4;
   walkPhase+= moving? dt*10 : 0;
   // 小藥童
   kid.position.set(P.x, inBoat?0.55:(mode==='inner'?innerY(P.x,P.z):0.3), P.z); kid.rotation.y=heading;
@@ -1482,7 +1503,7 @@ function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elap
   if(mode==='inner'){ INNER.forEach((w,i)=>{ innerLabels[i].classList.toggle('next',i===innerStep); innerLabels[i].classList.toggle('done',i<innerStep); place(innerLabels[i],w.x,6,w.z); }); }
   else if(mode==='turn'){ stations.forEach(s=>s.el.style.display='none'); }
   else { innerLabels.forEach(e=>e.style.display='none'); stations.forEach(s=>place(s.el, s.x, s.id==='lixia'?8.5:s.id==='tie'?8:s.id==='shui'?6:s.id==='que'?5:2, s.z)); }
-  if(mode==='turn'&&turnT>4.3) place(mLabel,-10,62,-185); else mLabel.style.display='none';
+  if(mode==='turn'&&turnT>4.3) place(mLabel,-15,74,-195); else mLabel.style.display='none';
   requestAnimationFrame(loop); }
 const pv=new T.Vector3();
 function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.x)>1.1||Math.abs(pv.y)>1.1){ el.style.display='none'; return; } el.style.display=''; el.style.left=((pv.x+1)/2*innerWidth)+'px'; el.style.top=((1-pv.y)/2*innerHeight)+'px'; }
@@ -1546,7 +1567,7 @@ function playIntro(done){ const el=document.getElementById('intro'); el.hidden=f
   at(300,()=>{ sc.classList.add('open'); tone('chime'); });
   at(3600,()=>{ sc.style.opacity=0; bg('jinan'); line('清朝末年，山東濟南府。'); });
   at(7200,()=>line('家家泉水，戶戶垂楊，<br>比那江南風景，還要有趣。'));
-  at(11000,()=>{ who.src=PPL['老殘']; who.classList.add('on'); line('一位搖著串鈴的江湖郎中——<b>老殘</b>，<br>帶著小藥童來到了這裡。'); tone('pop'); });
+  at(11000,()=>{ who.src=PPL['老殘']; who.classList.add('on'); tone('bell'); line('一位搖著串鈴的江湖郎中——<b>老殘</b>，<br>帶著小藥童來到了這裡。'); tone('pop'); });
   at(15000,()=>{ who.classList.remove('on'); bg('que'); line('這一天午後，他們走到鵲華橋邊……'); });
   at(18600,()=>line('跟著老殘，去遊大明湖吧！'));
   at(21500,finish);
