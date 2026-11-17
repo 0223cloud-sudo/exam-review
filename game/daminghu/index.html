@@ -334,16 +334,16 @@ const bed = new T.Mesh(new T.CircleGeometry(1,64).rotateX(-Math.PI/2).scale(RX,1
 
 // ---------- 水面（真的會反射） ----------
 const waterShader = {
-  uniforms:{ color:{value:null}, tDiffuse:{value:null}, textureMatrix:{value:null}, time:{value:0}, tint:{value:new T.Color('#9fb9ae')}, rip:{value:Array.from({length:16},()=>new T.Vector4(0,0,0,0))} },
+  uniforms:{ color:{value:null}, tDiffuse:{value:null}, textureMatrix:{value:null}, time:{value:0}, tint:{value:new T.Color('#9fb9ae')}, rip:{value:Array.from({length:24},()=>new T.Vector4(0,0,0,0))} },
   vertexShader:'uniform mat4 textureMatrix; varying vec4 vUv; varying vec2 vP; void main(){ vUv=textureMatrix*vec4(position,1.); vP=position.xy; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:[
-    'uniform sampler2D tDiffuse; uniform float time; uniform vec3 tint; uniform vec4 rip[16]; varying vec4 vUv; varying vec2 vP;',
+    'uniform sampler2D tDiffuse; uniform float time; uniform vec3 tint; uniform vec4 rip[24]; varying vec4 vUv; varying vec2 vP;',
     'void main(){',
     ' vec2 d=vec2(sin(vP.y*0.55+time*1.2)+sin(vP.x*0.23-time*0.8), cos(vP.x*0.47+time*1.0)+sin(vP.y*0.19+time*0.6))*0.0035;',
     ' float sp=0.;',
     // 船經過的漣漪：每個 rip = (x, y, 目前半徑, 強度)，波峰在半徑上、內側拖著幾圈較弱的波
-    ' for(int i=0;i<16;i++){ vec4 R=rip[i]; if(R.w<=0.) continue; vec2 v=vP-R.xy; float dd=length(v); float x=dd-R.z;',
-    '   float env=exp(-x*x*(x>0.?6.:0.9))*R.w; float w=sin(x*7.5)*env; d+=v/max(dd,.001)*w*0.012; sp+=w*0.10; }',
+    ' for(int i=0;i<24;i++){ vec4 R=rip[i]; if(R.w<=0.) continue; vec2 v=vP-R.xy; float dd=length(v); float x=dd-R.z;',
+    '   float env=exp(-x*x*(x>0.?9.:1.6))*R.w; float w=sin(x*9.)*env; d+=v/max(dd,.001)*w*0.008; sp+=w*0.05; }',
     ' vec4 uv=vUv; uv.xy+=d*uv.w;',
     ' vec3 r=texture2DProj(tDiffuse,uv).rgb;',
     ' gl_FragColor=vec4(mix(tint,r*vec3(.85,.95,1.),0.38)+sp,1.);',
@@ -495,29 +495,21 @@ const boat = new T.Group(); scene.add(boat); boat.visible=false;
   const bow=new T.Mesh(new T.ConeGeometry(1.1,1.6,4),lam('#7a5232')); bow.rotation.x=Math.PI/2; bow.rotation.y=Math.PI/4; bow.scale.set(1,1,0.45); bow.position.set(0,0.15,3.7); boat.add(bow);
   const st=bow.clone(); st.rotation.x=-Math.PI/2; st.position.z=-3.7; boat.add(st);
   const oar=new T.Mesh(new T.CylinderGeometry(0.07,0.07,4.5,5),lam('#5a3a22')); oar.position.set(1.4,0.9,-1.5); oar.rotation.z=1.0; boat.add(oar); boat.userData.oar=oar; }
-// 船的水紋：划動時船尾兩側往外擴散成八字形，停著時船邊偶爾一圈，每划一槳有一圈槳花
-const WAKE=[]; const wakeGeo=new T.RingGeometry(0.82,1,48); wakeGeo.rotateX(-Math.PI/2);
-for(let i=0;i<48;i++){ const m=new T.Mesh(wakeGeo,new T.MeshBasicMaterial({color:'#f4f7f0',transparent:true,opacity:0,depthWrite:false})); m.visible=false; m.renderOrder=2; scene.add(m); WAKE.push({m,age:9,life:1,vx:0,vz:0,s0:1,s1:1,a:0}); }
-let wakeI=0, wakeT=0, wakeSide=1, idleT=0;
-function wakeAdd(x,z,vx,vz,s0,s1,life,a){ if(!isWater(x,z)) return; const w=WAKE[wakeI++%WAKE.length]; w.m.position.set(x,0.04,z); Object.assign(w,{age:0,life,vx,vz,s0,s1,a}); w.m.scale.set(s0,1,s0); w.m.visible=true; }
+// 船的水紋：不畫線條，只讓水面本身起伏（水面著色器 rip）。
+// 船尾沿路留下小波源，每個慢慢擴散變淡；船速比波速快很多，疊起來自然形成船後細長的 V 字尾波。
+const NRIP=24, WAKE=[]; for(let i=0;i<NRIP;i++) WAKE.push({x:0,z:0,age:9,life:1,sp:1,a:0});
+let wakeI=0, wakeT=0, idleT=1.5;
+function wakeAdd(x,z,sp,life,a){ if(!isWater(x,z)) return; Object.assign(WAKE[wakeI++%NRIP],{x,z,age:0,life,sp,a}); }
 function updWake(dt,moving){
-  if(inBoat){ const fx=Math.sin(heading), fz=Math.cos(heading), rx=fz, rz=-fx;           // 前進方向、右手方向
-    const bx=P.x-fx*0.9, bz=P.z-fz*0.9;                                                     // 船中心
-    if(moving){ wakeT-=dt; if(wakeT<=0){ wakeT=0.13; wakeSide=-wakeSide;
-        const sx=bx-fx*3.4+rx*wakeSide*0.9, sz=bz-fz*3.4+rz*wakeSide*0.9;                  // 船尾兩側
-        wakeAdd(sx,sz,rx*wakeSide*1.6-fx*0.4,rz*wakeSide*1.6-fz*0.4,0.5,3.2,2.4,0.5);
-        if(Math.random()<0.35) wakeAdd(bx+fx*3.6,bz+fz*3.6,0,0,0.4,1.6,1.0,0.35); }       // 船頭小浪
-      idleT=0.5; }
-    else { idleT-=dt; if(idleT<=0){ idleT=1.4+Math.random(); wakeAdd(bx+(Math.random()-.5)*2,bz+(Math.random()-.5)*2,0,0,1.2,4.5,2.8,0.25); } } }
-  for(const w of WAKE){ if(!w.m.visible) continue; w.age+=dt; const k=w.age/w.life; if(k>=1){ w.m.visible=false; continue; }
-    w.m.position.x+=w.vx*dt; w.m.position.z+=w.vz*dt; const sc=w.s0+(w.s1-w.s0)*(1-(1-k)*(1-k)); w.m.scale.set(sc,1,sc*0.85);
-    w.m.material.opacity=w.a*(1-k)*Math.min(1,k*6); } }
-function wakeToWater(){ const U=water.material.uniforms.rip.value; let n=0;
-  for(let j=0;j<WAKE.length && n<16;j++){ const w=WAKE[(wakeI-1-j+WAKE.length*4)%WAKE.length]; if(!w.m.visible) continue; const k=w.age/w.life;
-    U[n++].set(w.m.position.x,-w.m.position.z,w.m.scale.x,Math.min(1,w.a*2)*(1-k)*Math.min(1,k*6)); }
-  for(;n<16;n++) U[n].w=0; }
-function oarSplash(){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;
-  wakeAdd(bx-fx*1.5+fz*2.4,bz-fz*1.5-fx*2.4,0,0,0.3,2.2,1.6,0.6); }
+  if(inBoat){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;   // 船中心
+    if(moving){ wakeT-=dt; if(wakeT<=0){ wakeT=0.16; wakeAdd(bx-fx*3.2,bz-fz*3.2,1.5,3.0,0.55); } idleT=1.5; }
+    else { idleT-=dt; if(idleT<=0){ idleT=2.2+Math.random()*1.5; wakeAdd(bx+(Math.random()-.5)*3,bz+(Math.random()-.5)*4,0.9,3.5,0.18); } } }  // 停船：偶爾一圈很淡的
+  for(const w of WAKE) w.age+=dt; }
+function wakeToWater(){ const U=water.material.uniforms.rip.value;
+  for(let i=0;i<NRIP;i++){ const w=WAKE[i], k=w.age/w.life; if(k>=1){ U[i].w=0; continue; }
+    U[i].set(w.x,-w.z,0.4+w.sp*w.age*(1-0.25*k),w.a*(1-k)*(1-k)*Math.min(1,k*8)); } }
+function oarSplash(){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;   // 槳入水的地方一小圈
+  wakeAdd(bx-fx*1.5+fz*2.4,bz-fz*1.5-fx*2.4,1.1,1.8,0.35); }
 // 水鳥
 const birds=[]; const birdMat=lam('#f7f7f2');
 function spawnBirds(x,z){ for(let i=0;i<9;i++){ const b=new T.Group(); const wl=new T.Mesh(new T.BoxGeometry(1.1,0.06,0.4),birdMat), wr=wl.clone(); wl.position.x=-0.55; wr.position.x=0.55; const bd=new T.Mesh(new T.SphereGeometry(0.22,6,5),birdMat); b.add(wl,wr,bd);
