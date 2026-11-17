@@ -512,9 +512,24 @@ function wakeToWater(){ const U=water.material.uniforms.rip.value;
 function oarSplash(){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;   // 槳入水的地方一小圈
   wakeAdd(bx-fx*1.5+fz*2.4,bz-fz*1.5-fx*2.4,1.1,1.8,0.35); }
 // 水鳥
-const birds=[]; const birdMat=lam('#f7f7f2');
-function spawnBirds(x,z){ for(let i=0;i<9;i++){ const b=new T.Group(); const wl=new T.Mesh(new T.BoxGeometry(1.1,0.06,0.4),birdMat), wr=wl.clone(); wl.position.x=-0.55; wr.position.x=0.55; const bd=new T.Mesh(new T.SphereGeometry(0.22,6,5),birdMat); b.add(wl,wr,bd);
-  b.position.set(x+(rnd()-.5)*8,0.6,z+(rnd()-.5)*8); b.userData={wl,wr,v:new T.Vector3((rnd()-.5)*6,5+rnd()*3,-4-rnd()*4),p:rnd()*6,life:0}; scene.add(b); birds.push(b);} }
+const birds=[]; const birdMat=lam('#f4f2ea'), birdTip=lam('#8a8f8c'), beakMat=lam('#c98a2e'); birdMat.emissive&&birdMat.emissive.set('#5e5c55');   // 從下面看翅膀也不會太黑
+// 水鳥（像白鷺、鷗）：身體、頭、嘴、尾巴；翅膀從肩膀拍動，往後收的形狀；頭朝飛行方向
+const wingGeo=(()=>{ const sh=new T.Shape(); sh.moveTo(0,0.16); sh.lineTo(0.55,0.12); sh.lineTo(1.05,-0.12); sh.lineTo(0.5,-0.2); sh.lineTo(0,-0.16); sh.closePath();
+  const g=new T.ShapeGeometry(sh); g.rotateX(-Math.PI/2); return g; })();   // 平放：+x 往外、-z 往後
+const tipGeo=(()=>{ const sh=new T.Shape(); sh.moveTo(0.78,0.03); sh.lineTo(1.05,-0.12); sh.lineTo(0.72,-0.17); sh.closePath(); const g=new T.ShapeGeometry(sh); g.rotateX(-Math.PI/2); g.translate(0,0.004,0); return g; })();
+function makeBird(sc){ const b=new T.Group(); const bd=new T.Mesh(new T.SphereGeometry(0.2,10,8),birdMat); bd.scale.set(0.9,0.85,2.1); b.add(bd);
+  const hd=new T.Mesh(new T.SphereGeometry(0.12,8,6),birdMat); hd.position.set(0,0.1,0.42); b.add(hd);
+  const bk=new T.Mesh(new T.ConeGeometry(0.035,0.2,5),beakMat); bk.rotation.x=Math.PI/2; bk.position.set(0,0.09,0.6); b.add(bk);
+  const tl=new T.Mesh(new T.ConeGeometry(0.13,0.34,4),birdMat); tl.rotation.x=-Math.PI/2; tl.scale.set(1,1,0.25); tl.position.set(0,0.02,-0.5); b.add(tl);
+  const wing=side=>{ const pv=new T.Group(); pv.position.set(side*0.13,0.06,0.04); const m=new T.Mesh(wingGeo,birdMat); m.material.side=T.DoubleSide; const tp=new T.Mesh(tipGeo,birdTip); tp.material.side=T.DoubleSide;
+    if(side<0){ m.scale.x=-1; tp.scale.x=-1; } pv.add(m,tp); b.add(pv); return pv; };
+  b.userData.wl=wing(-1); b.userData.wr=wing(1); b.scale.setScalar(sc); return b; }
+// 拍翅：一段時間用力拍、一段時間張開翅膀滑翔
+function flap(b,p,glide){ const f=glide?0.18+Math.sin(p*0.3)*0.05:0.15+Math.sin(p)*0.75; b.userData.wl.rotation.z=-f; b.userData.wr.rotation.z=f; }
+function spawnBirds(x,z){ for(let i=0;i<9;i++){ const b=makeBird(1.3+rnd()*0.4); const ang=rnd()*Math.PI*2, sp=5+rnd()*3;
+  b.position.set(x+Math.cos(ang)*(3+rnd()*5),0.35,z+Math.sin(ang)*(3+rnd()*5)); b.visible=false;
+  b.userData.v=new T.Vector3(Math.cos(ang)*sp,4+rnd()*2.5,Math.sin(ang)*sp-2); b.userData.p=rnd()*6; b.userData.life=-i*0.12-rnd()*0.2; b.userData.fr=11+rnd()*3;
+  scene.add(b); birds.push(b);} }
 
 // 老畫師（鵲華橋邊）
 const painter=figure('#7a5a4a',false); painter.position.set(-36,0.3,-34); painter.rotation.y=0.6; scene.add(painter);
@@ -530,10 +545,13 @@ const fishers=[];
 const mistTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d'); const gr=x.createRadialGradient(64,64,4,64,64,62); gr.addColorStop(0,'rgba(255,250,236,.85)'); gr.addColorStop(1,'rgba(255,250,236,0)'); x.fillStyle=gr; x.fillRect(0,0,128,128); return new T.CanvasTexture(c); })();
 const mists=[]; for(let i=0;i<9;i++){ const s=new T.Sprite(new T.SpriteMaterial({map:mistTex,transparent:true,opacity:.45,depthWrite:false})); s.scale.set(40+rnd()*30,10,1);
   s.position.set((rnd()-.5)*140,3+rnd()*3,(rnd()-.5)*90); scene.add(s); mists.push(s); }
-const flock=[]; for(let i=0;i<6;i++){ const b=new T.Group(); const wl=new T.Mesh(new T.BoxGeometry(1,0.05,0.35),birdMat), wr=wl.clone(); wl.position.x=-0.5; wr.position.x=0.5; b.add(wl,wr); b.userData={wl,wr,p:i}; scene.add(b); flock.push(b); }
+const flock=[]; for(let i=0;i<6;i++){ const b=makeBird(1.1); b.userData.p=i*1.7; b.userData.o=[(i%2?1:-1)*Math.ceil(i/2)*2.2,-Math.ceil(i/2)*1.8]; scene.add(b); flock.push(b); }   // 排成鬆散的人字形
 function updAmbient(t){ fishers.forEach((f,i)=>{ f.g.position.x=f.x+Math.sin(t*0.07+i)*6; f.g.position.z=f.z+Math.cos(t*0.05+i)*3; f.g.rotation.z=Math.sin(t*1.3+i)*0.04; f.g.position.y=Math.sin(t*1.7+i)*0.06; });
   mists.forEach((m,i)=>{ m.position.x+=0.02*(i%2?1:-1); if(m.position.x>90) m.position.x=-90; if(m.position.x<-90) m.position.x=90; });
-  flock.forEach((b,i)=>{ const a=t*0.12+i*0.25; b.position.set(Math.cos(a)*55+i*1.5, 18+Math.sin(t+i)*1.2, Math.sin(a)*35+i); b.rotation.y=-a; const f=Math.sin(t*9+i)*0.6; b.userData.wl.rotation.z=f; b.userData.wr.rotation.z=-f; }); }
+  { const a=t*0.07, cx=Math.cos(a)*55, cz=Math.sin(a)*35, hd=Math.atan2(-Math.sin(a)*55,Math.cos(a)*35);              // 鳥群沿著大橢圓慢慢盤旋，頭朝前進方向
+    flock.forEach((b,i)=>{ const o=b.userData.o, c=Math.cos(hd), s2=Math.sin(hd);
+      b.position.set(cx+o[0]*c+o[1]*s2, 18+Math.sin(t*0.8+i)*0.8, cz-o[0]*s2+o[1]*c); b.rotation.set(0,hd,Math.sin(t*0.5+i)*0.12);
+      b.userData.p+=0.016*10; flap(b,t*10+i*1.7,Math.sin(t*0.6+i*0.9)>0.1); }); } }
 
 // ---------- 玩家移動 ----------
 const P = new T.Vector3(-31,0.3,-33);   // 從鵲華橋邊出發
@@ -1540,7 +1558,11 @@ function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elap
   // 船
   boat.visible=inBoat; if(inBoat){ boat.position.set(P.x-Math.sin(heading)*0.9, 0.05+Math.sin(t*2)*0.06, P.z-Math.cos(heading)*0.9); boat.rotation.y=heading; boat.rotation.z=Math.sin(t*1.6)*0.03; boat.userData.oar.rotation.x=moving?Math.sin(t*5)*0.5:0; }
   // 水鳥
-  for(let i=birds.length-1;i>=0;i--){ const b=birds[i]; b.userData.life+=dt; b.position.addScaledVector(b.userData.v,dt); b.userData.p+=dt*14; const f=Math.sin(b.userData.p)*0.7; b.userData.wl.rotation.z=f; b.userData.wr.rotation.z=-f; if(b.userData.life>6){ scene.remove(b); birds.splice(i,1);} }
+  for(let i=birds.length-1;i>=0;i--){ const b=birds[i], u=b.userData; u.life+=dt; if(u.life<0) continue; b.visible=true;   // 一隻一隻接著飛起來
+    u.v.y=Math.max(0.6,u.v.y-dt*1.4); u.v.x*=1+dt*0.15; u.v.z*=1+dt*0.15;                                                 // 先往上衝，再慢慢轉平飛遠
+    b.position.addScaledVector(u.v,dt); tmp.copy(b.position).add(u.v); b.lookAt(tmp);
+    const glide=u.life>1.6 && Math.sin(u.life*1.3+u.p)>0.35; u.p+=dt*(u.life<1.6?u.fr*1.3:u.fr); flap(b,u.p,glide);
+    if(u.life>7){ scene.remove(b); birds.splice(i,1);} }
   // 鐵公祠前轉身：鏡頭和人物一起從北慢慢轉向南
   if(mode==='turn'){ turnT+=dt; while(turnCues.length&&turnT>=turnCues[0][0]) turnCues.shift()[1](); const u=Math.min(1,Math.max(0,(turnT-1.8)/1.9)), e=u*u*(3-2*u); const yaw=turnFrom+(Math.PI-turnFrom)*e;
     kid.rotation.y=yaw; lao.rotation.y=yaw; lao.position.set(52.6,0.3,26.2); kid.position.y=0.3+Math.sin(u*Math.PI)*0.6;
