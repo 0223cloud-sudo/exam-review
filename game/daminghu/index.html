@@ -334,15 +334,18 @@ const bed = new T.Mesh(new T.CircleGeometry(1,64).rotateX(-Math.PI/2).scale(RX,1
 
 // ---------- 水面（真的會反射） ----------
 const waterShader = {
-  uniforms:{ color:{value:null}, tDiffuse:{value:null}, textureMatrix:{value:null}, time:{value:0}, tint:{value:new T.Color('#9fb9ae')} },
+  uniforms:{ color:{value:null}, tDiffuse:{value:null}, textureMatrix:{value:null}, time:{value:0}, tint:{value:new T.Color('#9fb9ae')}, rip:{value:Array.from({length:16},()=>new T.Vector4(0,0,0,0))} },
   vertexShader:'uniform mat4 textureMatrix; varying vec4 vUv; varying vec2 vP; void main(){ vUv=textureMatrix*vec4(position,1.); vP=position.xy; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:[
-    'uniform sampler2D tDiffuse; uniform float time; uniform vec3 tint; varying vec4 vUv; varying vec2 vP;',
+    'uniform sampler2D tDiffuse; uniform float time; uniform vec3 tint; uniform vec4 rip[16]; varying vec4 vUv; varying vec2 vP;',
     'void main(){',
     ' vec2 d=vec2(sin(vP.y*0.55+time*1.2)+sin(vP.x*0.23-time*0.8), cos(vP.x*0.47+time*1.0)+sin(vP.y*0.19+time*0.6))*0.0035;',
+    ' float sp=0.;',
+    // 船經過的漣漪：每個 rip = (x, y, 目前半徑, 強度)，波峰在半徑上、內側拖著幾圈較弱的波
+    ' for(int i=0;i<16;i++){ vec4 R=rip[i]; if(R.w<=0.) continue; vec2 v=vP-R.xy; float dd=length(v); float x=dd-R.z;',
+    '   float env=exp(-x*x*(x>0.?6.:0.9))*R.w; float w=sin(x*7.5)*env; d+=v/max(dd,.001)*w*0.012; sp+=w*0.10; }',
     ' vec4 uv=vUv; uv.xy+=d*uv.w;',
     ' vec3 r=texture2DProj(tDiffuse,uv).rgb;',
-    ' float sp=0.;',
     ' gl_FragColor=vec4(mix(tint,r*vec3(.85,.95,1.),0.38)+sp,1.);',
     '}'].join('\n')
 };
@@ -509,6 +512,10 @@ function updWake(dt,moving){
   for(const w of WAKE){ if(!w.m.visible) continue; w.age+=dt; const k=w.age/w.life; if(k>=1){ w.m.visible=false; continue; }
     w.m.position.x+=w.vx*dt; w.m.position.z+=w.vz*dt; const sc=w.s0+(w.s1-w.s0)*(1-(1-k)*(1-k)); w.m.scale.set(sc,1,sc*0.85);
     w.m.material.opacity=w.a*(1-k)*Math.min(1,k*6); } }
+function wakeToWater(){ const U=water.material.uniforms.rip.value; let n=0;
+  for(let j=0;j<WAKE.length && n<16;j++){ const w=WAKE[(wakeI-1-j+WAKE.length*4)%WAKE.length]; if(!w.m.visible) continue; const k=w.age/w.life;
+    U[n++].set(w.m.position.x,-w.m.position.z,w.m.scale.x,Math.min(1,w.a*2)*(1-k)*Math.min(1,k*6)); }
+  for(;n<16;n++) U[n].w=0; }
 function oarSplash(){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;
   wakeAdd(bx-fx*1.5+fz*2.4,bz-fz*1.5-fx*2.4,0,0,0.3,2.2,1.6,0.6); }
 // 水鳥
@@ -1509,6 +1516,7 @@ function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elap
   if(inBoat&&moving&&!talking){ oarT-=dt; if(oarT<=0){ oarT=1.5; if(MUS.on) tone('oar'); oarSplash(); } } else oarT=0.4;
   walkPhase+= moving? dt*10 : 0;
   updWake(dt,moving&&!talking);
+  wakeToWater();
   // 小藥童
   kid.position.set(P.x, inBoat?0.55:(mode==='inner'?innerY(P.x,P.z):0.3), P.z); kid.rotation.y=heading;
   const sw=moving&&!inBoat?Math.sin(walkPhase)*0.35:0; kid.userData.legL.rotation.x=sw; kid.userData.legR.rotation.x=-sw; kid.userData.body.position.y=0.85*0.82+(moving&&!inBoat?Math.abs(Math.sin(walkPhase))*0.06:0);
