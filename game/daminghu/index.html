@@ -492,6 +492,25 @@ const boat = new T.Group(); scene.add(boat); boat.visible=false;
   const bow=new T.Mesh(new T.ConeGeometry(1.1,1.6,4),lam('#7a5232')); bow.rotation.x=Math.PI/2; bow.rotation.y=Math.PI/4; bow.scale.set(1,1,0.45); bow.position.set(0,0.15,3.7); boat.add(bow);
   const st=bow.clone(); st.rotation.x=-Math.PI/2; st.position.z=-3.7; boat.add(st);
   const oar=new T.Mesh(new T.CylinderGeometry(0.07,0.07,4.5,5),lam('#5a3a22')); oar.position.set(1.4,0.9,-1.5); oar.rotation.z=1.0; boat.add(oar); boat.userData.oar=oar; }
+// 船的水紋：划動時船尾兩側往外擴散成八字形，停著時船邊偶爾一圈，每划一槳有一圈槳花
+const WAKE=[]; const wakeGeo=new T.RingGeometry(0.82,1,48); wakeGeo.rotateX(-Math.PI/2);
+for(let i=0;i<48;i++){ const m=new T.Mesh(wakeGeo,new T.MeshBasicMaterial({color:'#f4f7f0',transparent:true,opacity:0,depthWrite:false})); m.visible=false; m.renderOrder=2; scene.add(m); WAKE.push({m,age:9,life:1,vx:0,vz:0,s0:1,s1:1,a:0}); }
+let wakeI=0, wakeT=0, wakeSide=1, idleT=0;
+function wakeAdd(x,z,vx,vz,s0,s1,life,a){ if(!isWater(x,z)) return; const w=WAKE[wakeI++%WAKE.length]; w.m.position.set(x,0.04,z); Object.assign(w,{age:0,life,vx,vz,s0,s1,a}); w.m.scale.set(s0,1,s0); w.m.visible=true; }
+function updWake(dt,moving){
+  if(inBoat){ const fx=Math.sin(heading), fz=Math.cos(heading), rx=fz, rz=-fx;           // 前進方向、右手方向
+    const bx=P.x-fx*0.9, bz=P.z-fz*0.9;                                                     // 船中心
+    if(moving){ wakeT-=dt; if(wakeT<=0){ wakeT=0.13; wakeSide=-wakeSide;
+        const sx=bx-fx*3.4+rx*wakeSide*0.9, sz=bz-fz*3.4+rz*wakeSide*0.9;                  // 船尾兩側
+        wakeAdd(sx,sz,rx*wakeSide*1.6-fx*0.4,rz*wakeSide*1.6-fz*0.4,0.5,3.2,2.4,0.5);
+        if(Math.random()<0.35) wakeAdd(bx+fx*3.6,bz+fz*3.6,0,0,0.4,1.6,1.0,0.35); }       // 船頭小浪
+      idleT=0.5; }
+    else { idleT-=dt; if(idleT<=0){ idleT=1.4+Math.random(); wakeAdd(bx+(Math.random()-.5)*2,bz+(Math.random()-.5)*2,0,0,1.2,4.5,2.8,0.25); } } }
+  for(const w of WAKE){ if(!w.m.visible) continue; w.age+=dt; const k=w.age/w.life; if(k>=1){ w.m.visible=false; continue; }
+    w.m.position.x+=w.vx*dt; w.m.position.z+=w.vz*dt; const sc=w.s0+(w.s1-w.s0)*(1-(1-k)*(1-k)); w.m.scale.set(sc,1,sc*0.85);
+    w.m.material.opacity=w.a*(1-k)*Math.min(1,k*6); } }
+function oarSplash(){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;
+  wakeAdd(bx-fx*1.5+fz*2.4,bz-fz*1.5-fx*2.4,0,0,0.3,2.2,1.6,0.6); }
 // 水鳥
 const birds=[]; const birdMat=lam('#f7f7f2');
 function spawnBirds(x,z){ for(let i=0;i<9;i++){ const b=new T.Group(); const wl=new T.Mesh(new T.BoxGeometry(1.1,0.06,0.4),birdMat), wr=wl.clone(); wl.position.x=-0.55; wr.position.x=0.55; const bd=new T.Mesh(new T.SphereGeometry(0.22,6,5),birdMat); b.add(wl,wr,bd);
@@ -1487,8 +1506,9 @@ function loop(){ const raw=clock.getDelta(), dt=Math.min(raw,0.05), t=clock.elap
       const nx=P.x+tmp.x*Math.min(sp,d), nz=P.z+tmp.z*Math.min(sp,d); if(!tryMove(nx,nz)) target=null;
       const want=Math.atan2(tmp.x,tmp.z); let da=want-heading; while(da>Math.PI)da-=Math.PI*2; while(da<-Math.PI)da+=Math.PI*2; heading+=da*Math.min(1,dt*8); } }
   inBoat=mode!=='inner'&&isWater(P.x,P.z);
-  if(inBoat&&moving&&MUS.on&&!talking){ oarT-=dt; if(oarT<=0){ oarT=1.5; tone('oar'); } } else oarT=0.4;
+  if(inBoat&&moving&&!talking){ oarT-=dt; if(oarT<=0){ oarT=1.5; if(MUS.on) tone('oar'); oarSplash(); } } else oarT=0.4;
   walkPhase+= moving? dt*10 : 0;
+  updWake(dt,moving&&!talking);
   // 小藥童
   kid.position.set(P.x, inBoat?0.55:(mode==='inner'?innerY(P.x,P.z):0.3), P.z); kid.rotation.y=heading;
   const sw=moving&&!inBoat?Math.sin(walkPhase)*0.35:0; kid.userData.legL.rotation.x=sw; kid.userData.legR.rotation.x=-sw; kid.userData.body.position.y=0.85*0.82+(moving&&!inBoat?Math.abs(Math.sin(walkPhase))*0.06:0);
