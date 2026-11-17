@@ -205,7 +205,7 @@ body.vnfull #compass{display:none}
   <div class="chip" id="main" hidden>主線：《明湖長卷》 <b id="cards">0</b>/8 <span id="scrollbar" class="sb"></span></div>
   <div class="chip" id="hint">下一站：鵲華橋</div>
   <div class="chip" id="scoreChip" hidden>得分 <b id="score">0</b></div>
-  <button class="chip" id="autoBtn" type="button" aria-pressed="false" title="開了以後，會自動走到下一站">🧭 自動帶路</button>
+  <button class="chip" id="autoBtn" type="button" hidden aria-pressed="false" title="開了以後，會自動走到下一站">🧭 自動帶路</button>
   <button class="chip" id="modeChip" type="button" aria-label="切換一般模式或挑戰模式">📜 一般模式</button>
   <button class="chip" id="musBtn" type="button" aria-label="配樂開關">♪ 配樂</button>
 </div>
@@ -271,7 +271,7 @@ body.vnfull #compass{display:none}
   <div class="opts" role="group" aria-label="遊戲設定">
     <label><input type="radio" name="smode" value="n" checked>📜 一般模式（可看課文線索）</label>
     <label><input type="radio" name="smode" value="ch">🔥 挑戰模式（沒有線索）</label>
-    <label><input type="checkbox" id="sauto">🧭 自動帶路（不用自己找路）</label></div>
+</div>
   <div class="rule">📝 <b>計分</b>：答題 95 分＋接蓮蓬最多 5 分＝100 分。第一次就答對才算分；答錯一次會有「方法提示」，可以再試一次。<br>🔎 有幾題要<b>兩步</b>：先選答案，再找出課文裡支持答案的句子。<br>以上設定，遊戲中都可以在右上角再切換。</div>
   <p style="font-size:13px">有配樂和漁歌，建議戴耳機或打開聲音 🔊（右上角可以關配樂）</p>
   <div class="row"><button id="go">出發</button><button id="resume" class="ghost" type="button" hidden></button></div>
@@ -895,12 +895,12 @@ function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curT
 const CH={on:false,ever:false}; let curTask='', lotusN=0, evDone=0; const EV_MAX=6;
 try{ if(localStorage.getItem('mh_mode')==='ch'){ CH.on=CH.ever=true; } }catch(_){}
 function readStartOpts(){ const m=document.querySelector('input[name=smode]:checked'); CH.on=!!(m&&m.value==='ch'); if(CH.on) CH.ever=true;
-  try{ localStorage.setItem('mh_mode',CH.on?'ch':'n'); }catch(_){} modeChip(); setAuto(document.getElementById('sauto').checked); }
+  try{ localStorage.setItem('mh_mode',CH.on?'ch':'n'); }catch(_){} modeChip(); setAuto(false); }
 function modeChip(){ const c=document.getElementById('modeChip'); if(!c) return; c.textContent=CH.on?'🔥 挑戰模式':'📜 一般模式'; c.classList.toggle('ch',CH.on); c.title='點一下切換模式'; }
 document.getElementById('modeChip').addEventListener('click',e=>{ e.stopPropagation(); CH.on=!CH.on; if(CH.on) CH.ever=true; try{ localStorage.setItem('mh_mode',CH.on?'ch':'n'); }catch(_){} modeChip();
   toast(CH.on?'🔥 挑戰模式：下一題起不給課文線索':'📜 一般模式：下一題起可以看課文線索'); });
 modeChip();
-try{ if(CH.on) document.querySelector('input[name=smode][value=ch]').checked=true; document.getElementById('sauto').checked=localStorage.getItem('mh_auto')==='on'; }catch(_){}
+try{ if(CH.on) document.querySelector('input[name=smode][value=ch]').checked=true; }catch(_){}
 // ---------- 計分：答題 95 分（每個第一次就答對的挑戰 95÷37 分）＋接蓮蓬最多 5 分 = 100 分 ----------
 function lotusPts(){ return Math.min(5,Math.round(lotusN*5/8)); }
 const QTOTAL=37;   // 一輪遊戲的挑戰數（題目＋小任務＋撈字卡），每個第一次就答對得 95÷37 分，越玩分數越高
@@ -1557,7 +1557,7 @@ function updLost(dt){ const g=lostTarget(); if(!g||AUTO.on){ helpBtn.hidden=true
   if(g.key!==LOST.key){ LOST.key=g.key; LOST.best=1e9; LOST.t=0; LOST.warned=false; helpBtn.hidden=true; }
   const d=Math.hypot(P.x-g.x,P.z-g.z); if(d<LOST.best-2){ LOST.best=d; LOST.t=0; } else LOST.t+=dt;
   if(LOST.t>18 && !LOST.warned){ LOST.warned=true; toast('找不到路嗎？跟著紅色箭頭和羅盤走'); }
-  if(LOST.t>30 && helpBtn.hidden){ helpBtn.textContent=mode==='inner'?'👣 迷路了？請老殘帶路':'🚣 迷路了？請船家帶路'; helpBtn.hidden=false; } }
+  if(LOST.t>30 && helpBtn.hidden){ helpBtn.textContent=mode==='inner'?'👣 迷路了？請老殘帶路':'🚣 迷路了？請船家帶路'; helpBtn.hidden=false; autoBtn.hidden=false; } }
 helpBtn.addEventListener('click',()=>{ const g=lostTarget(); helpBtn.hidden=true; LOST.t=0; LOST.best=1e9; if(!g) return; guideTo(g); });
 function guideTo(g){
   autoPath=[];
@@ -1566,7 +1566,7 @@ function guideTo(g){
   autoPath.push([g.x,g.z]); const f=autoPath.shift(); target=new T.Vector3(f[0],0.3,f[1]); AUTO.key=g.key; }
 // 自動帶路：打開後，沒有在對話、也沒有自己操作時，就自動走（划）到下一站或下一張字卡
 const AUTO={on:false,pause:0,key:null}; const autoBtn=document.getElementById('autoBtn');
-try{ AUTO.on=localStorage.getItem('mh_auto')==='on'; }catch(_){}
+// 自動帶路一開始不顯示：學生第一次迷路（「請船家帶路」出現）時，右上角才出現這個開關
 function autoLabel(){ autoBtn.classList.toggle('on',AUTO.on); autoBtn.setAttribute('aria-pressed',AUTO.on); autoBtn.textContent=AUTO.on?'🧭 自動帶路：開':'🧭 自動帶路：關'; }
 function setAuto(v){ AUTO.on=v; try{ localStorage.setItem('mh_auto',v?'on':'off'); }catch(_){} autoLabel(); if(!v){ autoPath=[]; target=null; } }
 autoBtn.addEventListener('click',e=>{ e.stopPropagation(); setAuto(!AUTO.on); toast(AUTO.on?'🧭 自動帶路：會自己走到下一站':'自動帶路關了，自己找路吧！'); });
