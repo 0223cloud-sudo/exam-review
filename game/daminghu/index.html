@@ -351,7 +351,7 @@ const waterShader = {
     ' float sp=0.;',
     // 船經過的漣漪：每個 rip = (x, y, 目前半徑, 強度)，波峰在半徑上、內側拖著幾圈較弱的波
     ' for(int i=0;i<24;i++){ vec4 R=rip[i]; if(R.w<=0.) continue; vec2 v=vP-R.xy; float dd=length(v); float x=dd-R.z;',
-    '   float env=exp(-x*x*(x>0.?9.:1.6))*R.w; float w=sin(x*9.)*env; d+=v/max(dd,.001)*w*0.008; sp+=w*0.05; }',
+    '   float env=exp(-x*x*16.)*R.w; d+=v/max(dd,.001)*env*0.0025; sp+=env*0.08; }',
     ' vec4 uv=vUv; uv.xy+=d*uv.w;',
     ' vec3 r=texture2DProj(tDiffuse,uv).rgb;',
     ' gl_FragColor=vec4(mix(tint,r*vec3(.85,.95,1.),0.38)+sp,1.);',
@@ -510,7 +510,7 @@ let wakeI=0, wakeT=0, idleT=1.5;
 function wakeAdd(x,z,sp,life,a){ if(!isWater(x,z)) return; Object.assign(WAKE[wakeI++%NRIP],{x,z,age:0,life,sp,a}); }
 function updWake(dt,moving){
   if(inBoat){ const fx=Math.sin(heading), fz=Math.cos(heading); const bx=P.x-fx*0.9, bz=P.z-fz*0.9;   // 船中心
-    if(moving){ wakeT-=dt; if(wakeT<=0){ wakeT=0.16; wakeAdd(bx-fx*3.2,bz-fz*3.2,1.5,3.0,0.55); } idleT=1.5; }
+    if(moving){ wakeT-=dt; if(wakeT<=0){ wakeT=0.08; wakeAdd(bx-fx*3.0,bz-fz*3.0,1.3,1.9,0.5); } idleT=1.5; }
     else { idleT-=dt; if(idleT<=0){ idleT=2.2+Math.random()*1.5; wakeAdd(bx+(Math.random()-.5)*3,bz+(Math.random()-.5)*4,0.9,3.5,0.18); } } }  // 停船：偶爾一圈很淡的
   for(const w of WAKE) w.age+=dt; }
 function wakeToWater(){ const U=water.material.uniforms.rip.value;
@@ -730,7 +730,8 @@ addEventListener('resize',hudLayout); if(window.ResizeObserver) new ResizeObserv
 let toastT; function toast(s){ const t=document.getElementById('toast'); t.textContent=s; t.style.opacity=1; clearTimeout(toastT); toastT=setTimeout(()=>t.style.opacity=0,2000); }
 function updHint(){ const h=document.getElementById('hint'); const id=order[step];
   document.getElementById('main').hidden=!mainShown;
-  h.textContent= goalNow?('目標：'+goalNow):(talking?'目標：完成這一站的任務':(id?'目標：'+GOALS[id]:(step<0?'準備出發':'遊覽結束')));
+  if(goalNow && mode==='lake' && wordKey && WORDSETS[wordKey]){ h.textContent='目標：照順序撈起「'+WORDSETS[wordKey].w+'」，再'+goalNow.replace(/^點湖面，/,''); }
+  else h.textContent= goalNow?('目標：'+goalNow):(talking?'目標：完成這一站的任務':(id?'目標：'+GOALS[id]:(step<0?'準備出發':'遊覽結束')));
   stations.forEach(s=>{ s.el.classList.toggle('done',!!visited[s.id]); s.el.classList.toggle('next',s.id===id || (id==='end'&&s.id==='que')); }); }
 
 // ---------- 音效（不用音檔，用程式合成） ----------
@@ -1216,6 +1217,7 @@ function checkStations(){ if(talking) return;
   const s= id==='end' ? stations[0] : stations.find(s=>s.id===id); if(!s) return;
   if(Math.hypot(P.x-s.x,P.z-s.z)<s.r){
     // 這一段要照課文的字卡路線走：字卡還沒照順序撈完，就到不了下一站
+    if(mode==='lake' && wordQ) return;                                   // 字卡的題目還沒問完
     if(mode==='lake' && wordKey && tokens.some(k=>!k.got)){ const nt=performance.now(); if(nt-blockT>3000){ blockT=nt; tone('bad');
         toast('還不能靠岸！要照課文「'+WORDSETS[wordKey].w+'」把字卡照順序撈完，才到得了這裡'); } return; }
     visited[s.id]=1; step++; goalNow=null;
@@ -1533,10 +1535,12 @@ function setupWords(key){ tokens.forEach(t=>scene.remove(t.s)); tokens=[]; wordK
     const s=new T.Sprite(new T.SpriteMaterial({map:charTex(ch),fog:false})); s.scale.set(4.2,4.2,1); s.position.set(x,1.8,z); s.layers.set(1); scene.add(s); tokens.push({ch,s,x,z,i,got:false}); });
   renderWordbar(); wordbar.hidden=false; }
 function renderWordbar(){ const S=WORDSETS[wordKey]; if(!S) return; wordbar.innerHTML='🪷 撈起課文：'+[...S.w].map((c,i)=>'<span class="'+(i<wordGot?'got':'')+'">'+(i<wordGot?c:'？')+'</span>').join(''); }
-let wordWarnT=0;
+let wordWarnT=0, wordQ=null, wordQKey=null; const WDONE={};   // WDONE：已經撈完、答完的字卡組（重新整理後不再出現）
+// 字卡撈完的那一題：一定要問到（以前若剛好划進景點，這題會被跳過，總分就到不了 100）；問完才能靠岸
+function askWordQ(){ if(!wordQ) return; if(talking){ setTimeout(askWordQ,600); return; } const q=wordQ; play([{q}],()=>{ if(wordQ===q){ wordQ=null; if(wordQKey) WDONE[wordQKey]=1; saveGame(); } updHint(); },true); }
 function updWords(t){ if(!wordKey||mode!=='lake'||talking) return; tokens.forEach(k=>{ if(k.got) return; k.s.position.y=1.8+Math.sin(t*2+k.i)*0.25;
     if(Math.hypot(P.x-k.x,P.z-k.z)<3){ if(k.i===wordGot){ k.got=true; scene.remove(k.s); wordGot++; tone('pop'); renderWordbar();
-        if(wordGot===tokens.length){ tone('ding'); const S=WORDSETS[wordKey]; wordKey=null; setTimeout(()=>{ wordbar.hidden=true; if(!talking) play([{q:S.q}],updHint,true); },700); } }
+        if(wordGot===tokens.length){ tone('ding'); const S=WORDSETS[wordKey]; wordQKey=wordKey; wordKey=null; wordQ=S.q; setTimeout(()=>{ wordbar.hidden=true; askWordQ(); },700); } }
       else if(t-wordWarnT>2){ wordWarnT=t; toast('要照順序撈，先找「'+tokens[wordGot].ch+'」'); } } }); }
 
 // ---------- 鍵盤與方向按鈕 ----------
@@ -1619,7 +1623,7 @@ function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.
 // ---------- 自動存檔：每過一站存一次；平板自己重新整理也能接著玩 ----------
 const SAVE_KEY='mh_save_v1';
 function saveGame(done){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify({t:Date.now(),done:!!done,step,mainShown,gotCards,visited,dusk,mode,innerStep,
-  ch:{on:CH.on,ever:CH.ever},lotusN,evDone,ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||'',a.fixed?1:0]),again:AGAIN})); }catch(e){} }
+  ch:{on:CH.on,ever:CH.ever},lotusN,evDone,ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||'',a.fixed?1:0]),again:AGAIN,wdone:WDONE})); }catch(e){} }
 function loadSave(){ try{ const v=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(v && Date.now()-v.t<8*3600e3 && v.step>=0) return v; }catch(e){} return null; }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 function resumeGame(v){ step=v.step; mainShown=!!v.mainShown; Object.assign(visited,v.visited||{}); dusk=duskNow=v.dusk||0; CH.on=!!(v.ch&&v.ch.on); CH.ever=!!(v.ch&&v.ch.ever); lotusN=v.lotusN||0; evDone=v.evDone||0; modeChip();
@@ -1630,7 +1634,7 @@ function resumeGame(v){ step=v.step; mainShown=!!v.mainShown; Object.assign(visi
   const id=order[step];
   if(v.mode==='inner'||id==='inner'){ enterInner(); innerStep=Math.max(0,Math.min(v.innerStep||0,INNER.length-1)); goalNow=INNER[innerStep].goal;
     if(innerStep>0){ const w=INNER[innerStep-1]; P.set(w.x+(innerStep>=3?0:2),0.3,w.z+(innerStep>=3?0:1)); laoPos.set(P.x+1.5,0.3,P.z-1.5); } }
-  else { const pos={lixia:[-31,-33],tie:[-2,-4.5],he:[42,16],end:[-6,25]}[id]||[-31,-33]; P.set(pos[0],0.3,pos[1]); laoPos.set(P.x-2,0.3,P.z-1); setupWords(id); goalNow=GOALS[id]; }
+  else { const pos={lixia:[-31,-33],tie:[-2,-4.5],he:[42,16],end:[-6,25]}[id]||[-31,-33]; P.set(pos[0],0.3,pos[1]); laoPos.set(P.x-2,0.3,P.z-1); Object.assign(WDONE,v.wdone||{}); if(!WDONE[id]) setupWords(id); goalNow=GOALS[id]; }
   first=true; trail.length=0; updHint(); toast('已回到上次的進度'); }
 { const sv=loadSave(), rb=document.getElementById('resume');
   if(sv){ rb.hidden=false; rb.textContent=sv.done?'看上次的結果和長卷':'繼續上次進度（已收集 '+Object.keys(sv.gotCards||{}).length+' 段景色）'; document.getElementById('go').textContent='重新開始';
