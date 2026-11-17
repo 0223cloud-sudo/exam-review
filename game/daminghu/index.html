@@ -150,9 +150,16 @@ mark{background:linear-gradient(transparent 55%,#f4c96a 55%);color:inherit;font-
 .cnt{grid-column:1/-1;font-size:20px;text-align:center}
 #field{position:absolute;inset:0;z-index:4}
 .cdot{display:inline-block;width:20px;height:20px;border-radius:50%;border:2px solid #6b5a44;vertical-align:-3px;margin-right:6px}
-.lbar{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:rgba(250,244,230,.95);border:2px solid var(--line);border-radius:20px;padding:8px 22px;font-size:22px;white-space:nowrap}
+.lbar{position:absolute;top:calc(var(--hudB,58px) + 8px);left:50%;transform:translateX(-50%);background:rgba(250,244,230,.95);border:2px solid var(--line);border-radius:20px;padding:8px 22px;font-size:22px;white-space:nowrap}
 .lbar b{color:var(--seal)}
 .pod.got{transform:scale(1.6);opacity:0;transition:.25s}
+.pod.gold{border-color:#c8961e;box-shadow:0 0 0 4px #f6d36a,0 0 22px 6px rgba(255,205,80,.85);filter:sepia(.6) saturate(2.2) brightness(1.15)}
+.plus{position:fixed;transform:translate(-50%,-50%);font-size:30px;font-weight:bold;color:#fff;text-shadow:0 2px 0 #7a2218,0 0 8px #7a2218;pointer-events:none;animation:plusUp .8s ease-out forwards;z-index:5}
+.plus.gold{color:#ffe27a;font-size:38px}
+@keyframes plusUp{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-60px}}
+.lbar .combo{color:#b45309;font-weight:bold}.lbar .combo.hot{color:#c2410c;display:inline-block;animation:comboP .4s ease-in-out infinite alternate}
+@keyframes comboP{to{transform:scale(1.15)}}
+body.lotusOn #cap{visibility:hidden}
 .pod.demo{position:static;display:inline-block;width:38px;height:38px;margin:0;animation:none;vertical-align:middle;cursor:default}
 .pod{position:absolute;top:100%;width:86px;height:86px;margin-left:-43px;border-radius:50%;border:3px solid #5b5a2a;background:radial-gradient(circle at 30% 35%,#3d3a1a 0 5px,transparent 6px),radial-gradient(circle at 62% 30%,#3d3a1a 0 5px,transparent 6px),radial-gradient(circle at 48% 62%,#3d3a1a 0 5px,transparent 6px),radial-gradient(circle at 72% 64%,#3d3a1a 0 5px,transparent 6px),radial-gradient(circle,#b6b05a,#7f8a3a);animation:hop linear forwards;cursor:pointer;padding:0}
 @keyframes hop{0%{top:100%;transform:rotate(0)}50%{top:18%}100%{top:105%;transform:rotate(200deg)}}
@@ -1164,20 +1171,15 @@ const TASKS={
       ch.appendChild(b); }); };
   duck(0.2); render(); tone(S[0].k); },
  // 荷花叢：接蓮蓬（說明清楚、上方顯示倒數和數量）
+ lotusEnd(){ wait(); who.textContent='接蓮蓬挑戰賽'; setFace(null); showActor(null); txt.innerHTML='🏆 再挑戰一次，看能不能刷新紀錄！你的最佳紀錄：<b>'+lotusBest().s+' 分</b>（'+lotusTitle(lotusBest().s)+'）'; quoteEl.innerHTML=''; ch.innerHTML='';
+  const st=document.createElement('button'); st.type='button'; st.className='go'; st.textContent='開始'; st.addEventListener('click',e=>{ e.stopPropagation(); lotusRound(true); }); ch.appendChild(st); },
  lotus(){ wait(); who.textContent='小遊戲：接蓮蓬'; setFace(null); showActor(null);
-  txt.innerHTML='「那已老的蓮蓬不斷的蹦到船窗裡面來。」<br><b>玩法：</b>按「開始」後，蓮蓬會從下面蹦上來，<b>用手指點一下蓮蓬</b>就接住了。15 秒內接到 8 個就過關！';
+  const best=lotusBest();
+  txt.innerHTML='「那已老的蓮蓬不斷的蹦到船窗裡面來。」<br><b>玩法：</b>按「開始」後，蓮蓬會從下面蹦上來，<b>用手指點一下</b>就接住了。15 秒內接到 8 個就過關！'+
+    '<br>🏆 <b>挑戰賽</b>：每個 1 分，<b>金蓮蓬 3 分</b>；連續接住不漏接是「連擊」，連擊 5 以上每個<b>加倍</b>。'+(best.s?'<br>你的最佳紀錄：<b>'+best.s+' 分</b>（'+lotusTitle(best.s)+'）':'');
   quoteEl.innerHTML='<span class="pod demo" aria-hidden="true"></span><span class="qt">蓮蓬長這樣，點它！</span>';
   ch.innerHTML=''; const st=document.createElement('button'); st.type='button'; st.className='go'; st.textContent='開始接蓮蓬'; ch.appendChild(st);
-  st.addEventListener('click',e=>{ e.stopPropagation(); dlg.style.visibility='hidden'; let n=0, left=15; const field=document.getElementById('field'); field.hidden=false;
-    field.innerHTML='<div class="lbar">⏱ <b id="lt">15</b> 秒　　接到 <b id="lc">0</b> / 8 個</div>';
-    const spawn=()=>{ const p=document.createElement('button'); p.type='button'; p.className='pod'; p.setAttribute('aria-label','蓮蓬');
-      p.style.left=(10+Math.random()*80)+'%'; p.style.animationDuration=(2.2+Math.random()*1.2)+'s';
-      p.addEventListener('pointerdown',ev=>{ ev.stopPropagation(); ev.preventDefault(); if(p.dataset.got) return; p.dataset.got=1; n++; tone('pop'); document.getElementById('lc').textContent=n; p.classList.add('got'); setTimeout(()=>p.remove(),250); });
-      p.addEventListener('animationend',()=>p.remove()); field.appendChild(p); };
-    spawn(); const timer=setInterval(spawn,520);
-    const clock=setInterval(()=>{ left--; const el=document.getElementById('lt'); if(el) el.textContent=left; },1000);
-    setTimeout(()=>{ clearInterval(timer); clearInterval(clock); field.innerHTML=''; field.hidden=true; dlg.style.visibility=''; tone('ding');
-      lotusN=Math.max(lotusN,n); scoreShow(); txt.innerHTML=(n>=8?'<b class="ok">過關！</b>':'')+'接到 <b>'+n+'</b> 個蓮蓬！加 <b>'+lotusPts()+'</b> 分（最多 5 分）。老殘隨手摘了幾個，一面吃著。'; quoteEl.innerHTML=''; ch.innerHTML=''; goBtn(); },15000); }); },
+  st.addEventListener('click',e=>{ e.stopPropagation(); lotusRound(); }); },
  // 鵲華橋：在示意圖上依序點景點、畫出箭頭；點課文句子會畫出那一段
  route(){ wait(); who.textContent='任務：畫出遊覽路線'; setFace(null); showActor(null);
   txt.innerHTML='老畫師拿出一張大明湖示意圖。<b>依照老殘遊覽的順序，在地圖上點景點</b>，把路線畫出來。'; quoteEl.innerHTML='';
@@ -1229,12 +1231,39 @@ function showEnd(){ saveGame(true); const e=document.getElementById('end'); cons
   if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+(a.fixed?' <span style="color:#2f7a4a;font-weight:bold">✔ 路上已訂正</span>':'')+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.picked&&a.picked.startsWith('（證據）')?'（證據）'+a.q.hl:a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
   else h+='<p>全部第一次就答對，太厲害了！</p>';
   h+='<div class="retryBox"></div>';
-  h+='<div class="endbtns">'+(redo.length?'<button id="redoBtn" type="button">✏️ 錯題再挑戰（'+redo.length+' 題）</button>':'')+'<button id="readAll" type="button">📜 看全文</button><button id="again" type="button">重新玩一次</button></div>';
+  h+='<div class="endbtns">'+(redo.length?'<button id="redoBtn" type="button">✏️ 錯題再挑戰（'+redo.length+' 題）</button>':'')+'<button id="lotusBtn" type="button">🪷 接蓮蓬挑戰賽（最佳 '+lotusBest().s+' 分）</button><button id="readAll" type="button">📜 看全文</button><button id="again" type="button">重新玩一次</button></div>';
   e.innerHTML='<div class="card">'+h+'</div>'; e.hidden=false;
   setTimeout(()=>drawLongScroll(e.querySelector('.longscroll'),false),60);
   { const ag=document.getElementById('again'); let armed=false; ag.addEventListener('click',()=>{ if(!armed){ armed=true; ag.textContent='再按一次就重新開始'; setTimeout(()=>{ armed=false; ag.textContent='重新玩一次'; },3000); return; } clearSave(); location.reload(); }); }
   document.getElementById('readAll').addEventListener('click',()=>openText(null));
+  document.getElementById('lotusBtn').addEventListener('click',()=>{ e.hidden=true; play([{task:'lotusEnd'}],()=>{ showEnd(); }); });
   const rb=document.getElementById('redoBtn'); if(rb) rb.addEventListener('click',()=>{ rb.remove(); runRetry(e.querySelector('.retryBox'),redo.map(a=>a.q)); }); }
+// ---------- 接蓮蓬挑戰賽：分數、連擊、金蓮蓬、個人最佳紀錄（存在這台平板） ----------
+function lotusBest(){ try{ return JSON.parse(localStorage.getItem('mh_lotus_best'))||{s:0,c:0}; }catch(_){ return {s:0,c:0}; } }
+function lotusTitle(sc){ return sc>=50?'👑 明湖蓮王':sc>=30?'🌟 蓮蓬高手':sc>=15?'🪷 採蓮好手':'🌱 採蓮新手'; }
+function lotusRound(fromEnd){ dlg.style.visibility='hidden'; document.body.classList.add('lotusOn'); let n=0, sc=0, combo=0, maxC=0, left=15, over=false; const field=document.getElementById('field'); field.hidden=false;
+  field.innerHTML='<div class="lbar">⏱ <b id="lt">15</b> 秒　接到 <b id="lc">0</b> / 8　得分 <b id="ls">0</b><span id="lcb"></span></div>';
+  const bar=()=>{ document.getElementById('lc').textContent=n; document.getElementById('ls').textContent=sc;
+    document.getElementById('lcb').innerHTML=combo>=2?'　<span class="combo'+(combo>=5?' hot':'')+'">🔥 連擊 '+combo+(combo>=5?' ×2':'')+'</span>':''; };
+  const pop=(p,t,gold)=>{ const r=p.getBoundingClientRect(), f=document.createElement('div'); f.className='plus'+(gold?' gold':''); f.textContent=t;
+    f.style.left=(r.left+r.width/2)+'px'; f.style.top=(r.top)+'px'; field.appendChild(f); setTimeout(()=>f.remove(),800); };
+  const spawn=()=>{ if(over) return; const gold=Math.random()<0.13; const p=document.createElement('button'); p.type='button'; p.className='pod'+(gold?' gold':''); p.setAttribute('aria-label',gold?'金蓮蓬':'蓮蓬');
+    p.style.left=(10+Math.random()*80)+'%'; p.style.animationDuration=(gold?1.6+Math.random()*0.5:2.2+Math.random()*1.2)+'s';
+    p.addEventListener('pointerdown',ev=>{ ev.stopPropagation(); ev.preventDefault(); if(p.dataset.got||over) return; p.dataset.got=1; n++; combo++; maxC=Math.max(maxC,combo);
+      const pt=(gold?3:1)*(combo>=5?2:1); sc+=pt; tone(gold?'ding':'pop'); pop(p,'+'+pt,gold); bar(); p.classList.add('got'); setTimeout(()=>p.remove(),250); });
+    p.addEventListener('animationend',()=>{ if(!p.dataset.got&&!over){ if(combo>=3) pop(p,'漏接！',false); combo=0; bar(); } p.remove(); }); field.appendChild(p); };
+  spawn(); const timer=setInterval(spawn,520);
+  const clock=setInterval(()=>{ left--; const el=document.getElementById('lt'); if(el) el.textContent=left; },1000);
+  setTimeout(()=>{ over=true; document.body.classList.remove('lotusOn'); clearInterval(timer); clearInterval(clock); field.innerHTML=''; field.hidden=true; dlg.style.visibility=''; tone('ding');
+    const old=lotusBest(), rec=sc>old.s; if(rec){ try{ localStorage.setItem('mh_lotus_best',JSON.stringify({s:sc,c:Math.max(maxC,old.c||0)})); }catch(_){} }
+    const bst=rec?sc:old.s;
+    if(!fromEnd){ lotusN=Math.max(lotusN,n); scoreShow(); saveGame(); }
+    txt.innerHTML=(rec?'<b class="ok">🎉 新紀錄！</b>':'')+(n>=8&&!fromEnd?'<b class="ok">過關！</b>':'')+'接到 <b>'+n+'</b> 個，挑戰賽 <b>'+sc+' 分</b>，最高連擊 <b>'+maxC+'</b>。'+
+      '<br>稱號：<b>'+lotusTitle(sc)+'</b>　　個人最佳：<b>'+bst+' 分</b>'+(bst<50?'（'+lotusTitle(bst)+'，再 '+([15,30,50].find(v=>v>bst)-bst)+' 分升級）':'')+
+      (fromEnd?'':'<br>遊戲分數加 <b>'+lotusPts()+'</b> 分（最多 5 分）。老殘隨手摘了幾個，一面吃著。');
+    quoteEl.innerHTML=''; ch.innerHTML='';
+    const again=document.createElement('button'); again.type='button'; again.className='opt'; again.style.textAlign='center'; again.textContent='🔁 再挑戰一次（刷新紀錄）';
+    again.addEventListener('click',ev=>{ ev.stopPropagation(); ch.innerHTML=''; lotusRound(fromEnd); }); ch.appendChild(again); goBtn(fromEnd?'回到成績頁 ▶':undefined); },15000); }
 // 錯題再挑戰：一題一題重答，全部訂正完成，長卷蓋上「訂正完成」的印章
 function runRetry(box,list){ let k=0; const one=()=>{ const q=list[k];
     box.innerHTML='<div class="retry"><b>✏️ 錯題再挑戰 '+(k+1)+' / '+list.length+'</b><div style="font-size:18px;margin:6px 0">'+esc(q.q)+'</div><div class="ops"></div><div class="msg"></div></div>';
