@@ -205,6 +205,7 @@ body.vnfull #compass{display:none}
   <div class="chip" id="main" hidden>主線：《明湖長卷》 <b id="cards">0</b>/8 <span id="scrollbar" class="sb"></span></div>
   <div class="chip" id="hint">下一站：鵲華橋</div>
   <div class="chip" id="scoreChip" hidden>得分 <b id="score">0</b></div>
+  <div class="chip" id="againChip" hidden title="答錯的題目，到下一個景點老殘會再考一次">📌 待訂正 0</div>
   <button class="chip" id="autoBtn" type="button" hidden aria-pressed="false" title="開了以後，會自動走到下一站">🧭 自動帶路</button>
   <button class="chip" id="modeChip" type="button" aria-label="切換一般模式或挑戰模式">📜 一般模式</button>
   <button class="chip" id="musBtn" type="button" aria-label="配樂開關">♪ 配樂</button>
@@ -272,7 +273,7 @@ body.vnfull #compass{display:none}
     <label><input type="radio" name="smode" value="n" checked>📜 一般模式（可看課文線索）</label>
     <label><input type="radio" name="smode" value="ch">🔥 挑戰模式（沒有線索）</label>
 </div>
-  <div class="rule">📝 <b>計分</b>：答題 95 分＋接蓮蓬最多 5 分＝100 分。第一次就答對才算分；答錯一次會有「方法提示」，可以再試一次。<br>🔎 有幾題要<b>兩步</b>：先選答案，再找出課文裡支持答案的句子。<br>以上設定，遊戲中都可以在右上角再切換。</div>
+  <div class="rule">📝 <b>計分</b>：答題 95 分＋接蓮蓬最多 5 分＝100 分。第一次就答對才算分；答錯一次會有「方法提示」，可以再試一次。<br>📌 答錯的題目會記下來，<b>到下一個景點老殘會再考一次</b>，答對就算訂正，拿回一半分數。<br>🔎 有幾題要<b>兩步</b>：先選答案，再找出課文裡支持答案的句子。<br>以上設定，遊戲中都可以在右上角再切換。</div>
   <p style="font-size:13px">有配樂和漁歌，建議戴耳機或打開聲音 🔊（右上角可以關配樂）</p>
   <div class="row"><button id="go">出發</button><button id="resume" class="ghost" type="button" hidden></button></div>
 </div></div>
@@ -897,7 +898,7 @@ function next(){ if(busy) return;
   if(s.cap!==undefined && !s.bg) setCap(s.cap);
   if(s.bg){ setBg(s.bg,s); return next(); }
   if(s.quiz){ const picks=shuffle(Q[s.quiz]).slice(0,s.n); queue.unshift(...picks.map(q=>({q}))); return next(); }
-  if(s.q) return ask(s.q);
+  if(s.q) return ask(s.q,s.review);
   if(s.task){ curTask=s.task; return TASKS[s.task](); }
   if(s.igoal){ goalNow=s.igoal; updHint(); queue.unshift({w:'旁白',t:'【下一步】'+s.igoal}); return next(); }
   if(s.goal){ setupWords(s.goal); goalNow=GOALS[s.goal]; updHint(); queue.unshift({w:'旁白',t:'【下一站】'+GOALS[s.goal]}); return next(); }
@@ -908,7 +909,15 @@ function next(){ if(busy) return;
 function wait(){ busy=true; more.hidden=true; dlg.classList.add('asking'); }
 function done(go){ busy=false; dlg.classList.remove('asking'); if(go!==false) next(); }
 function goBtn(label){ const b=document.createElement('button'); b.className='go'; b.type='button'; b.textContent=label||'繼續 ▶'; b.addEventListener('click',e=>{e.stopPropagation(); done();}); ch.appendChild(b); b.focus({preventScroll:true}); }
-function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curTask]; answered.push({q,first,picked}); scoreShow(); }
+function record(q,first,picked){ if(!q._id && MH.TASKQ[curTask]) q=MH.TASKQ[curTask]; const a={q,first,picked,fixed:false}; answered.push(a);
+  if(!first && canReview(q)) AGAIN.push({id:q._id,step}); scoreShow(); }
+// 答錯的題目先記在「待訂正」：到了下一個景點，老殘會換個順序再考一次；答對就算訂正，拿回這題一半的分數
+const AGAIN=[];
+function canReview(q){ return !!(q._id && q.o && q.o.length>1 && !/^(task|fin|finQ)\./.test(q._id)); }
+function againShow(){ const c=document.getElementById('againChip'); if(!c) return; c.hidden=!AGAIN.length; c.textContent='📌 待訂正 '+AGAIN.length; }
+function reviewNext(done){ const i=AGAIN.findIndex(a=>a.step<step); if(i<0){ againShow(); return done(); }
+  const it=AGAIN.splice(i,1)[0]; const q=MH.BYID[it.id]; againShow(); if(!q) return done();
+  play([{w:'老殘',t:'等等，剛剛有一題你答錯了，我們換個順序再想一次。答對了就算「訂正」，可以拿回一半的分數。'},{q,review:true}],done); }
 // ---------- 模式：學生自己切換。一般模式有「看課文線索」；挑戰模式不給線索 ----------
 const CH={on:false,ever:false}; let curTask='', lotusN=0, evDone=0; const EV_MAX=6;
 try{ if(localStorage.getItem('mh_mode')==='ch'){ CH.on=CH.ever=true; } }catch(_){}
@@ -922,7 +931,7 @@ try{ if(CH.on) document.querySelector('input[name=smode][value=ch]').checked=tru
 // ---------- 計分：答題 95 分（每個第一次就答對的挑戰 95÷37 分）＋接蓮蓬最多 5 分 = 100 分 ----------
 function lotusPts(){ return Math.min(5,Math.round(lotusN*5/8)); }
 const QTOTAL=37;   // 一輪遊戲的挑戰數（題目＋小任務＋撈字卡），每個第一次就答對得 95÷37 分，越玩分數越高
-function calcScore(){ const n=Math.max(QTOTAL,answered.length); return Math.min(100,Math.round(95*answered.filter(a=>a.first).length/n)+lotusPts()); }
+function calcScore(){ const n=Math.max(QTOTAL,answered.length); return Math.min(100,Math.round(95*(answered.filter(a=>a.first).length+0.5*answered.filter(a=>a.fixed).length)/n)+lotusPts()); }
 function scoreShow(){ const c=document.getElementById('scoreChip'); if(!c) return; c.hidden=step<0&&!answered.length; document.getElementById('score').textContent=calcScore(); }
 // ---------- 答錯時的「方法提示」：依題目類型提醒怎麼想 ----------
 function methodTip(q){ const s=q.q;
@@ -942,15 +951,16 @@ function canEvidence(q){ if(!q._id||!q.hl||q.o.length<2||/^(word|task|fin|finQ)\
 function evidenceOpts(q){ const p=paraOf(q.hl), seen=new Set([q.hl]), pool=[];
   Object.values(MH.BYID).forEach(x=>{ const h=x.hl; if(!h||seen.has(h)||h.length<5||paraOf(h)===p||paraOf(h)<0||h.includes(q.hl)||q.hl.includes(h)) return; seen.add(h); pool.push(h); });
   return shuffle(pool).slice(0,3); }
-function ask(q){ wait(); const sp=q.w||'老殘'; who.textContent=sp+'考你'; setFace(sp); showActor(sp);
-  const ev=canEvidence(q); if(ev) evDone++;
+function ask(q,review){ wait(); const sp=review?'老殘':(q.w||'老殘'); who.textContent=sp+(review?'再考你一次':'考你'); setFace(sp); showActor(sp);
+  const ev=!review&&canEvidence(q); if(ev) evDone++;
   let first=true, picked=null;
   const stage=(n,t)=>ev?'<span class="stage">第 '+n+' 步・'+t+'</span>':'';
   const clue=()=>{ if(CH.on){ quoteEl.innerHTML='<span class="qt">🔥 挑戰模式：沒有線索，靠自己！</span>'; return; }
     quoteEl.innerHTML='<button class="peek" type="button">📜 看課文線索</button>';
     quoteEl.querySelector('.peek').addEventListener('click',e=>{ e.stopPropagation(); openText(q.hl,ev); }); };
   const reveal=()=>{ quoteEl.innerHTML=quoteHtml(q.hl)+'<span class="src">「'+esc(q.hl)+'」</span>'; };
-  const finish=()=>{ record(q,first,picked); goBtn(); };
+  const finish=()=>{ if(review){ const a=[...answered].reverse().find(x=>x.q._id===q._id&&!x.first); if(a&&first){ a.fixed=true; tone('chime'); txt.innerHTML+='<br><b class="ok">✔ 訂正成功！拿回這題一半的分數。</b>'; } else if(!first) txt.innerHTML+='<br>這題記在最後的「回去要再看一次的地方」，玩完可以再挑戰。'; scoreShow(); saveGame(); }
+    else record(q,first,picked); goBtn(); };
   // 一組選項：答錯一次給方法提示、再試一次；第二次還錯就公布答案
   const round=(opts,tag,onRight,onFail,onTip)=>{ ch.innerHTML=''; let miss=0, right=null;
     shuffle(opts.map((o,i)=>({o,ok:i===0}))).forEach(c=>{ const b=document.createElement('button'); b.type='button'; b.textContent=c.o; b.className='opt'; if(c.ok){ right=b; curRight=b; }
@@ -966,7 +976,7 @@ function ask(q){ wait(); const sp=q.w||'老殘'; who.textContent=sp+'考你'; se
       ()=>{ txt.innerHTML='<b class="ok">證據也找對了！</b>'+esc(q.why||''); reveal(); finish(); },
       ()=>{ txt.innerHTML='<b class="bad">證據是這一句：</b>「'+esc(q.hl)+'」<br>'+esc(q.why||''); reveal(); finish(); },
       ()=>{ txt.innerHTML=head()+'<span class="method">💡 方法：把每一句和答案對照，找<b>直接寫到</b>答案內容的那一句；只是同一段、沒寫到重點的不算。</span><span class="tip">再試一次！</span>'; }); };
-  const head1=()=>stage(1,'先判斷')+esc(q.q);
+  const head1=()=>(review?'<span class="stage">🔁 再一次</span>':stage(1,'先判斷'))+esc(q.q);
   txt.innerHTML=head1(); clue();
   round(q.o,'',
     ()=>{ if(ev) return step2(); txt.innerHTML='<b class="ok">答對了！</b>'+esc(q.why||''); reveal(); finish(); },
@@ -1184,14 +1194,21 @@ const TASKS={
 function checkStations(){ if(talking) return;
   const id=order[step]; if(!id) return;
   const s= id==='end' ? stations[0] : stations.find(s=>s.id===id); if(!s) return;
-  if(Math.hypot(P.x-s.x,P.z-s.z)<s.r){ visited[s.id]=1; step++; goalNow=null; play(SCENES[id],()=>{ updHint(); saveGame(); }); updHint(); } }
+  if(Math.hypot(P.x-s.x,P.z-s.z)<s.r){
+    // 這一段要照課文的字卡路線走：字卡還沒照順序撈完，就到不了下一站
+    if(mode==='lake' && wordKey && tokens.some(k=>!k.got)){ const nt=performance.now(); if(nt-blockT>3000){ blockT=nt; tone('bad');
+        toast('還不能靠岸！要照課文「'+WORDSETS[wordKey].w+'」把字卡照順序撈完，才到得了這裡'); } return; }
+    visited[s.id]=1; step++; goalNow=null;
+    if(id==='end') reviewNext(()=>play(SCENES[id],()=>{ updHint(); saveGame(); }));   // 最後一站：先訂正，再進結尾
+    else play(SCENES[id],()=>{ reviewNext(()=>{ updHint(); saveGame(); }); }); updHint(); } }
+let blockT=-1e9;
 
 // ---------- 結局：《明湖長卷》＋複習 ----------
 function showEnd(){ saveGame(true); const e=document.getElementById('end'); const first=answered.filter(a=>a.first).length;
-  const bad=answered.filter(a=>!a.first), redo=bad.filter(a=>a.q.o.length>1);
+  const bad=answered.filter(a=>!a.first), redo=bad.filter(a=>a.q.o.length>1&&!a.fixed), fixedN=answered.filter(a=>a.fixed).length;
   let h='<h2>《明湖長卷》完成了！</h2><div class="longscroll"><p style="margin:10px;color:#6b5d4b">長卷繪製中……</p></div><p style="font-size:13px;color:#6b5d4b;margin:4px 0 0">👉 由左到右，照遊覽的順序；長卷可以左右滑動，<b>長按圖片</b>可以存到相簿。</p>';
-  h+='<p class="score">得分 <b class="big">'+calcScore()+'</b> / 100</p><p style="margin:2px 0;color:#6b5d4b">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個（兩步驟題要兩步都一次答對）；接蓮蓬 '+lotusN+' 個，加 '+lotusPts()+' 分。'+(CH.ever?'　🔥 用過挑戰模式':'')+'</p>';
-  if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.picked&&a.picked.startsWith('（證據）')?'（證據）'+a.q.hl:a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
+  h+='<p class="score">得分 <b class="big">'+calcScore()+'</b> / 100</p><p style="margin:2px 0;color:#6b5d4b">一共 '+answered.length+' 個挑戰，第一次就答對 '+first+' 個'+(fixedN?'、路上訂正 '+fixedN+' 個':'')+'（兩步驟題要兩步都一次答對）；接蓮蓬 '+lotusN+' 個，加 '+lotusPts()+' 分。'+(CH.ever?'　🔥 用過挑戰模式':'')+'</p>';
+  if(bad.length){ h+='<h3>回去要再看一次的地方</h3>'+bad.map(a=>{ const i=paraOf(a.q.hl); return '<div class="rev"><div class="rq">'+esc(a.q.q)+(a.fixed?' <span style="color:#2f7a4a;font-weight:bold">✔ 路上已訂正</span>':'')+'</div><div>'+(a.picked?'你選：<s>'+esc(a.picked)+'</s>　':'')+'正確答案：<b>'+esc(a.picked&&a.picked.startsWith('（證據）')?'（證據）'+a.q.hl:a.q.o[0])+'</b></div><div class="src">出處：課文第'+NUM[i]+'段「'+esc(a.q.hl)+'」</div></div>'; }).join(''); }
   else h+='<p>全部第一次就答對，太厲害了！</p>';
   h+='<div class="retryBox"></div>';
   h+='<div class="endbtns">'+(redo.length?'<button id="redoBtn" type="button">✏️ 錯題再挑戰（'+redo.length+' 題）</button>':'')+'<button id="readAll" type="button">📜 看全文</button><button id="again" type="button">重新玩一次</button></div>';
@@ -1318,7 +1335,7 @@ const arrowShape=new T.Shape(); arrowShape.moveTo(0,1.6); arrowShape.lineTo(1.1,
 const arrowGeo=new T.ShapeGeometry(arrowShape); arrowGeo.rotateX(Math.PI/2);
 const arrow=new T.Mesh(arrowGeo,new T.MeshBasicMaterial({color:'#b23a2a',transparent:true,opacity:.85,side:T.DoubleSide,depthWrite:false})); arrow.scale.setScalar(1.4); scene.add(arrow);
 function nextStation(){ const id=order[step]; if(!id||talking||mode==='turn') return null; if(mode==='inner') return INNER[innerStep]||null; return id==='end'?stations[0]:stations.find(s=>s.id===id); }
-function updGuide(t){ const s=nextStation(); beacon.visible=arrow.visible=!!s;
+function updGuide(t){ const wk=mode==='lake'&&wordKey&&!talking?tokens.find(o=>!o.got&&o.i===wordGot):null; const s=wk?{x:wk.x,z:wk.z,r:3}:nextStation(); beacon.visible=arrow.visible=!!s;
   if(!s) return;
   beacon.position.set(s.x,0,s.z); beacon.userData.gem.position.y=9+Math.sin(t*2)*0.6; beacon.userData.gem.rotation.y=t;
   const k=1+0.25*Math.sin(t*3); beacon.userData.ring.scale.set(k,1,k);
@@ -1551,13 +1568,13 @@ function place(el,x,y,z){ pv.set(x,y,z).project(camera); if(pv.z>1||Math.abs(pv.
 // ---------- 自動存檔：每過一站存一次；平板自己重新整理也能接著玩 ----------
 const SAVE_KEY='mh_save_v1';
 function saveGame(done){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify({t:Date.now(),done:!!done,step,mainShown,gotCards,visited,dusk,mode,innerStep,
-  ch:{on:CH.on,ever:CH.ever},lotusN,evDone,ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||''])})); }catch(e){} }
+  ch:{on:CH.on,ever:CH.ever},lotusN,evDone,ans:answered.map(a=>[a.q._id,a.first?1:0,a.picked||'',a.fixed?1:0]),again:AGAIN})); }catch(e){} }
 function loadSave(){ try{ const v=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(v && Date.now()-v.t<8*3600e3 && v.step>=0) return v; }catch(e){} return null; }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 function resumeGame(v){ step=v.step; mainShown=!!v.mainShown; Object.assign(visited,v.visited||{}); dusk=duskNow=v.dusk||0; CH.on=!!(v.ch&&v.ch.on); CH.ever=!!(v.ch&&v.ch.ever); lotusN=v.lotusN||0; evDone=v.evDone||0; modeChip();
   Object.keys(v.gotCards||{}).forEach(n=>{ if(gotCards[n]||CARDS.indexOf(n)<0) return; gotCards[n]=1; cards++; scrollBar.children[CARDS.indexOf(n)].className='on'; });
   document.getElementById('cards').textContent=cards;
-  (v.ans||[]).forEach(([id,f,p])=>{ const q=MH.BYID[id]; if(q) answered.push({q,first:!!f,picked:p}); }); scoreShow();
+  (v.ans||[]).forEach(([id,f,p,x])=>{ const q=MH.BYID[id]; if(q) answered.push({q,first:!!f,picked:p,fixed:!!x}); }); AGAIN.length=0; (v.again||[]).forEach(a=>AGAIN.push(a)); againShow(); scoreShow();
   if(v.done){ showEnd(); return; }
   const id=order[step];
   if(v.mode==='inner'||id==='inner'){ enterInner(); innerStep=Math.max(0,Math.min(v.innerStep||0,INNER.length-1)); goalNow=INNER[innerStep].goal;
